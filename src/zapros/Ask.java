@@ -42,6 +42,17 @@ public class Ask {
                 lastAnswer=new Answer(lastAnswer.as11, lastAnswer.as12, new_ass_arr[0], new_ass_arr[1], pair);
             }
         }
+        else if (session==assesments1.size()-1){
+            session++;
+            if(lastAnswer.as11==assesments1.size() || lastAnswer.as12==assesments1.size()){
+                int[] new_ass_arr = change_assesments(lastAnswer.as21, lastAnswer.as22, assesments2);
+                lastAnswer=new Answer(lastAnswer.as11, lastAnswer.as12, new_ass_arr[0], new_ass_arr[1], pair);
+            }
+            else if (lastAnswer.as21==assesments2.size() || lastAnswer.as22==assesments2.size()){
+                int[] new_ass_arr = change_assesments(lastAnswer.as11, lastAnswer.as12, assesments1);
+                lastAnswer=new Answer(new_ass_arr[0], new_ass_arr[1], lastAnswer.as21, lastAnswer.as22, pair);
+            }
+        }
         answers.add(lastAnswer);
         return lastAnswer;
     }

@@ -9,24 +9,33 @@ public class Answer {
     public int as22;
     public String decision;
     
+    
     public String getDecision(){
         return this.decision;
     }
     
-    public Integer getAs11(){
+    public int getAs11(){
         return this.as11;
     }
     
-    public Integer getAs12(){
+    public int getAs12(){
         return this.as12;
     }
     
-    public Integer getAs21(){
+    public int getAs21(){
         return this.as21;
     }
     
-    public Integer getAs22(){
+    public int getAs22(){
         return this.as22;
+    }
+    
+    public int getCrit1(){
+        return this.pair.crit1;
+    }
+    
+    public int getCrit2(){
+        return this.pair.crit2;
     }
     
     public Answer(){};
