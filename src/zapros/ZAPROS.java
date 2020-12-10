@@ -30,34 +30,47 @@ import javafx.stage.DirectoryChooser;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import javafx.geometry.Pos; 
 import java.util.Random;
+import java.util.*;
 
 public class ZAPROS extends Application {
     GridPane AskView;
+    VBox SettingsView;
     VBox AnswerView;
     VBox ScaleView;
+    VBox AlterView;
     Stage primaryStage;
     Scene sceneAnswerView;
-    
+    Scene sceneSettingsView;
+    Scene sceneScaleView;
+    Scene sceneAlterView;
     
     Ask ask = new Ask();
     Answer answer= new Answer();
     int countOfPairs;
     ToggleGroup group ;
-    RadioButton selection;
+    RadioButton selectionAnswer;
+    RadioButton selectionZapros;
     Data zapros;
     String path = "src/zapros/data_1/";
     
     Button btnAnswerView;
     Button btnScaleView;
+    Button btnAlterView;
     Button btnOk = new Button("В главное меню");
     Button btnReturnToAnswerView;
-    
-    
+    Button btnReturnToScaleView;
+    Button btnSettings;
+    static final int WIDTH = 1400;//ширина окна
+    static final int HEIGHT = 700;//высота окна
     
     @Override
     public void start(Stage primaryStage) {
+        selectionZapros = new RadioButton();
+        selectionZapros.setId("2");
+        
         Button btnStart = new Button();
         btnStart.setText("Старт");
         btnStart.setOnAction(new EventHandler<ActionEvent>() {
@@ -68,11 +81,25 @@ public class ZAPROS extends Application {
                 zapros=new Data(path);
                 ask();
                 
-                Scene sceneAsk = new Scene (AskView, 600, 300);
+                Scene sceneAsk = new Scene (AskView, WIDTH, HEIGHT);
                 primaryStage.setScene(sceneAsk);
                 primaryStage.show();
             }
         });
+        
+        btnSettings = new Button("Настройки");
+        btnSettings.setOnAction(new EventHandler<ActionEvent>() {
+            
+            @Override
+            public void handle(ActionEvent event) {
+                SettingsView = new VBox();
+                createSettingsView();
+                sceneSettingsView = new Scene (SettingsView, WIDTH, HEIGHT);
+                primaryStage.setScene(sceneSettingsView);
+                primaryStage.show();
+            }
+        });
+        
         btnAnswerView = new Button();
         btnAnswerView.setText("Посмотреть ответы");
         btnAnswerView.setOnAction(new EventHandler<ActionEvent>() {
@@ -81,7 +108,7 @@ public class ZAPROS extends Application {
             public void handle(ActionEvent event) {
                 AnswerView = new VBox();
                 createAnswerView();
-                sceneAnswerView = new Scene (AnswerView, 600, 300);
+                sceneAnswerView = new Scene (AnswerView, WIDTH, HEIGHT);
                 primaryStage.setScene(sceneAnswerView);
                 primaryStage.show();
             }
@@ -95,28 +122,26 @@ public class ZAPROS extends Application {
             public void handle(ActionEvent event) {
                 ScaleView = new VBox();
                 createScaleView();
-                Scene sceneScaleView = new Scene (ScaleView, 600, 300);
+                sceneScaleView = new Scene (ScaleView, WIDTH, HEIGHT);
                 primaryStage.setScene(sceneScaleView);
                 primaryStage.show();
             }
         });
         
-        final DirectoryChooser directoryChooser = new DirectoryChooser();
-        configuringDirectoryChooser(directoryChooser);
-        
-        
-        Button btnChooseDir = new Button("Загрузить");
- 
-        btnChooseDir.setOnAction(new EventHandler<ActionEvent>() {
- 
+        btnAlterView = new Button();
+        btnAlterView.setText("Ранжировать альтернативы");
+        btnAlterView.setOnAction(new EventHandler<ActionEvent>() {
+            
             @Override
             public void handle(ActionEvent event) {
-                File dir = directoryChooser.showDialog(primaryStage);
-                if (dir != null) {
-                    path = dir.getAbsolutePath();
-                }
+                AlterView = new VBox();
+                createAlterView();
+                Scene sceneAlterView = new Scene (AlterView, WIDTH, HEIGHT);
+                primaryStage.setScene(sceneAlterView);
+                primaryStage.show();
             }
         });
+        
         
         btnReturnToAnswerView = new Button("Вернуться к ответам");
         
@@ -126,6 +151,18 @@ public class ZAPROS extends Application {
             public void handle(ActionEvent event) {
                 
                 primaryStage.setScene(sceneAnswerView);
+                primaryStage.show();
+            }
+        });
+        
+        btnReturnToScaleView = new Button("Вернуться к шкалам");
+        
+        btnReturnToScaleView.setOnAction(new EventHandler<ActionEvent>() {
+            
+            @Override
+            public void handle(ActionEvent event) {
+                
+                primaryStage.setScene(sceneScaleView);
                 primaryStage.show();
             }
         });
@@ -140,18 +177,20 @@ public class ZAPROS extends Application {
                 randomAsk();
                 AnswerView = new VBox();
                 createAnswerView();
-                sceneAnswerView = new Scene (AnswerView, 600, 300);
+                sceneAnswerView = new Scene (AnswerView, WIDTH, HEIGHT);
                 primaryStage.setScene(sceneAnswerView);
                 primaryStage.show();
             }
         });
         
+        
+        
         VBox root = new VBox();
         root.setSpacing(10);
         root.setAlignment(Pos.CENTER);
-        root.getChildren().addAll(btnStart, btnChooseDir, btnRandomAsk);
+        root.getChildren().addAll(btnStart, btnSettings, btnRandomAsk);
         
-        Scene scene = new Scene(root, 600, 300);
+        Scene scene = new Scene(root, WIDTH, HEIGHT);
         
         primaryStage.setTitle("ZAPROS");
         primaryStage.setScene(scene);
@@ -168,7 +207,115 @@ public class ZAPROS extends Application {
         
     }
     
+    //сцена с альтернативами
+    public void createAlterView(){
+        Scale scale = new Scale();
+        scale.compareAlternatives(zapros);
+        ObservableList<Alternative> data = FXCollections.observableArrayList(zapros.alternative_list); 
+        TableView<Alternative> table = new TableView<Alternative>(data);
+        table.setPrefWidth(500);
+        table.setPrefHeight(500);
+        
+        // столбцы вывода оценок
+        TableColumn<Alternative, Integer> idColumn = new TableColumn<Alternative, Integer>("Id");
+        TableColumn<Alternative, String> nameColumn = new TableColumn<Alternative, String>("Название");
+        TableColumn<Alternative, ArrayList<Integer>> asColumn = new TableColumn<Alternative, ArrayList<Integer>>("Оценки");
+        
+        // определяем фабрику для столбцов
+        idColumn.setCellValueFactory(new PropertyValueFactory<Alternative, Integer>("id"));
+        nameColumn.setCellValueFactory(new PropertyValueFactory<Alternative, String>("name"));
+        asColumn.setCellValueFactory(new PropertyValueFactory<Alternative, ArrayList<Integer>>("criteria_assesments"));
+        
+        table.getColumns().add(idColumn);
+        table.getColumns().add(nameColumn);
+        table.getColumns().add(asColumn);
+        
+        if (Integer.parseInt(selectionZapros.getId())==3){
+            TableColumn<Alternative, ArrayList<Integer>> asrangColumn = new TableColumn<Alternative, ArrayList<Integer>>("Ранги оценок");
+            asrangColumn.setCellValueFactory(new PropertyValueFactory<Alternative, ArrayList<Integer>>("criteria_rangs"));
+            table.getColumns().add(asrangColumn);
+        }
+        TableColumn<Alternative, Integer> rangColumn = new TableColumn<Alternative, Integer>("Относительный ранг");
+        rangColumn.setCellValueFactory(new PropertyValueFactory<Alternative, Integer>("rang"));
+        table.getColumns().add(rangColumn);
+        //заголовок
+        Label labelScore = new Label("Список альтернатив");
+        Button btnSave = new Button("Сохранить результат");
+        //кнопка возврата в меню
+        //Button okBtn2 = new Button("OK");
+        //страница рекордов
+        AlterView.getChildren().addAll(labelScore,table, btnSave, btnReturnToScaleView, btnOk);
+        AlterView.setPadding(new Insets(50));
+        AlterView.setSpacing(10);
+        
+        btnSave.setOnAction(new EventHandler<ActionEvent>() {
+            
+            @Override
+            public void handle(ActionEvent event) {
+               try
+            {
+                PrintWriter pw = new PrintWriter(path+"/result_alternatives.txt");
+                pw.close();
+                FileWriter writer = new FileWriter(path+"/result_alternatives.txt", true);
+               // запись всей строки
+                for (Alternative a:zapros.alternative_list){
+                    writer.write(a.id+";"+a.name+";"+a.rang+"\n");
+                    writer.flush();
+                }
+            }
+            catch(IOException ex){
+                System.out.println(ex.getMessage());
+            } 
+            }
+        });
+    }
+    
+    //сцена настроек
+    public void createSettingsView(){
+        Label l = new Label("Выберите метод:");
+        RadioButton zapros2 = new RadioButton("ЗАПРОС II");
+        RadioButton zapros3 = new RadioButton("ЗАПРОС III");
+        zapros2.setId("2");
+        zapros3.setId("3");
+        zapros2.setSelected(true);
+        ToggleGroup group = new ToggleGroup();
+        zapros2.setToggleGroup(group);
+        zapros3.setToggleGroup(group);
+        
+        Button btnSetZapros = new Button("Изменить");
+        btnSetZapros.setOnAction(new EventHandler<ActionEvent>() {
+            
+            @Override
+            public void handle(ActionEvent event) {
+                selectionZapros = (RadioButton) group.getSelectedToggle();
+            }
+        });
+        
+        final DirectoryChooser directoryChooser = new DirectoryChooser();
+        configuringDirectoryChooser(directoryChooser);
+        
+        Label lDir = new Label("Загрузить исходные данные:");
+        Button btnChooseDir = new Button("Загрузить");
+ 
+        btnChooseDir.setOnAction(new EventHandler<ActionEvent>() {
+ 
+            @Override
+            public void handle(ActionEvent event) {
+                File dir = directoryChooser.showDialog(primaryStage);
+                if (dir != null) {
+                    path = dir.getAbsolutePath();
+                }
+            }
+        });
+        
+        SettingsView.getChildren().addAll(l, zapros2, zapros3, btnSetZapros, lDir,  btnChooseDir, btnOk);
+        SettingsView.setPadding(new Insets(50));
+        SettingsView.setSpacing(10);
+        SettingsView.setAlignment(Pos.CENTER);
+    }
+    
     final Random random = new Random();
+    //рандомные ответы
     public void randomAsk(){
         ArrayList<String> answers = new ArrayList<>();
         answers.add("first");
@@ -181,7 +328,9 @@ public class ZAPROS extends Application {
         
         
         while(countOfPairs>0){
-            answer.decision= answers.get(random.nextInt(2));//в ЗАПРОС 2
+            if (selectionZapros.getId()=="2")
+                answer.decision= answers.get(random.nextInt(2));//в ЗАПРОС 2
+            else answer.decision= answers.get(random.nextInt(3));
             zapros.answer_list.add(answer);
             if (ask.session<3) {
                 answer = ask.nextAnswer();
@@ -197,6 +346,7 @@ public class ZAPROS extends Application {
         } 
     }
     
+    //сцена со шкалами
     public void createScaleView(){
         
         ObservableList<Answer> data = FXCollections.observableArrayList(); 
@@ -205,40 +355,93 @@ public class ZAPROS extends Application {
             data.add(zapros.answer_list.get(i));
         }
         Scale scale = new Scale();
-        ArrayList<ArrayList<String>> scales = scale.buildScale(zapros);
-        ArrayList<ArrayList<String>> scalescopy = new ArrayList<ArrayList<String>>();
+        ArrayList<LinkedHashMap<String, Integer[]>> scales = scale.buildScale(zapros, Integer.parseInt(selectionZapros.getId()));
+        ArrayList<LinkedHashMap<String, Integer[]>> scalescopy = new ArrayList<LinkedHashMap<String, Integer[]>>();
         int i=0;
-        for (ArrayList<String> list:scales){
+        for (LinkedHashMap<String, Integer[]> list:scales){
             
-            ArrayList<String> listcopy = new ArrayList<String>();
-            for (String str:list){
-                listcopy.add(str);
+            LinkedHashMap<String, Integer[]> listcopy = new LinkedHashMap<String, Integer[]>();
+            for (Map.Entry<String, Integer[]> str:list.entrySet()){
+                listcopy.put(str.getKey(), str.getValue());
             }
-            scalescopy.add(new ArrayList<String>());
-            scalescopy.set(i, listcopy);
+            //scalescopy.add(new LinkedHashMap<String, Integer[]>());
+            scalescopy.add(listcopy);
             i++;
         }
-        ArrayList<String> uniScale = scale.buildUnifiedScale(scalescopy);
+        //ArrayList<String> uniScale = scale.buildUnifiedScale(scalescopy, Integer.parseInt(selectionZapros.getId()), zapros);
+        String uniscale = scale.buildUnifiedScale(scalescopy, Integer.parseInt(selectionZapros.getId()), zapros);
         ArrayList <String> stringScales = new ArrayList<String>();
+        
         i=0;
-        for (ArrayList<String> sc: scales){
-            String s = "Шкала для критериев: ";
+        for (LinkedHashMap<String, Integer[]> sc: scales){
+            String s = "Шкала для критериев ";
             s+=zapros.criteria_list.get(zapros.pair_list.get(i).crit1-1).name + " и " +zapros.criteria_list.get(zapros.pair_list.get(i).crit2-1).name+" : ";
-            i++;
-            
-            for (String str:sc){
-                s+=str+" -> ";
+            stringScales.add(s);
+            s="";
+            int j=0;
+            if (Integer.parseInt(selectionZapros.getId())==2){
+                for (Map.Entry<String, Integer[]> str:sc.entrySet()){
+                    if (j>0) s+=str.getKey()+" -> ";
+                    else s+=str.getKey()+" , ";
+                    j++;
             }
-            s=s.substring(0, s.length()-4);
+                s=s.substring(0, s.length()-4);
+            }
+            //int a=1, b=1;
+            if (Integer.parseInt(selectionZapros.getId())==3){
+                for (Map.Entry<String, Integer[]> str:sc.entrySet()){
+                    if (j<sc.size()-1)
+                        s+="R("+zapros.criteria_list.get(str.getValue()[0]-1).name+
+                                ", "+1+"-"+str.getValue()[1]+") "+
+                                scale.epsh_sign.get(i).get(j)+" ";
+                    else s+="R("+zapros.criteria_list.get(str.getValue()[0]-1).name+", "+1+"-"+str.getValue()[1]+") ";
+                    j++;
+                }         
+            }
+            i++;
             stringScales.add(s);
         }
         
         String s = "Единая Порядковая Шкала: ";
-        for (String str: uniScale){
-                s+=str+" -> ";
+        /*int j=0;
+        
+        if (Integer.parseInt(selectionZapros.getId())==2){
+            for (String str: uniScale){
+                if (j>zapros.criteria_list.size()-2) s+=str+" -> ";
+                else s+=str+" , ";
+                j++;
+            }
+            s=s.substring(0, s.length()-4);
+            stringScales.add(s);
         }
-        s=s.substring(0, s.length()-4);
+        if (Integer.parseInt(selectionZapros.getId())==3){
+            for (String str: uniScale){
+                
+                if (j>zapros.criteria_list.size()-2) s+=str+" > ";
+                else s+=str+" , ";
+                j++;
+            }
+            s=s.substring(0, s.length()-4);
+            stringScales.add(s);
+            stringScales.add("Ранги оценок: ");
+            
+            for (Assesment a: zapros.assesment_list){
+                stringScales.add("R("+zapros.criteria_list.get(a.criteria_id-1).name+
+                                ", "+1+"-"+a.id+") => "+a.rang);
+            }
+            
+        }*/
+        
         stringScales.add(s);
+        stringScales.add(uniscale);
+        if (Integer.parseInt(selectionZapros.getId())==3){
+            stringScales.add("Ранги оценок: ");
+            for (Assesment a: zapros.assesment_list){
+                stringScales.add("R("+zapros.criteria_list.get(a.criteria_id-1).name+
+                                ", "+1+"-"+a.id+") => "+a.rang);
+            }
+        }
+        
         
         ObservableList<String> langs = FXCollections.observableArrayList(stringScales);
         ListView<String> langsListView = new ListView<String>(langs);
@@ -248,8 +451,8 @@ public class ZAPROS extends Application {
         //кнопка возврата в меню
         Button btnSave = new Button("Сохранить результат");
         
-        //страница рекордов
-        ScaleView.getChildren().addAll(labelScore,langsListView, btnSave, btnReturnToAnswerView, btnOk);
+        
+        ScaleView.getChildren().addAll(labelScore,langsListView, btnAlterView, btnSave, btnReturnToAnswerView);
         ScaleView.setPadding(new Insets(50));
         ScaleView.setSpacing(10);
         
@@ -259,6 +462,8 @@ public class ZAPROS extends Application {
             public void handle(ActionEvent event) {
                try
             {
+                PrintWriter pw = new PrintWriter(path+"/result_scales.txt");
+                pw.close();
                 FileWriter writer = new FileWriter(path+"/result_scales.txt", true);
                // запись всей строки
                 for (String s:stringScales){
@@ -278,6 +483,7 @@ public class ZAPROS extends Application {
         //AnswersView.setMargin(labelScore, new Insets(10,WIDTH/4,10,WIDTH/4));
     }
     
+    //сцена с ответами
     public void createAnswerView(){
         
         ObservableList<Answer> data = FXCollections.observableArrayList(zapros.answer_list); 
@@ -311,9 +517,7 @@ public class ZAPROS extends Application {
         //заголовок
         Label labelScore = new Label("Список ответов");
         Button btnSave = new Button("Сохранить результат");
-        //кнопка возврата в меню
-        //Button okBtn2 = new Button("OK");
-        //страница рекордов
+        
         AnswerView.getChildren().addAll(labelScore,table, btnScaleView, btnSave);
         AnswerView.setPadding(new Insets(50));
         AnswerView.setSpacing(10);
@@ -324,6 +528,8 @@ public class ZAPROS extends Application {
             public void handle(ActionEvent event) {
                try
             {
+                PrintWriter pw = new PrintWriter(path+"/result_answers.txt");
+                pw.close();
                 FileWriter writer = new FileWriter(path+"/result_answers.txt", true);
                // запись всей строки
                 for (Answer a:zapros.answer_list){
@@ -337,11 +543,11 @@ public class ZAPROS extends Application {
             } 
             }
         });
-        //AnswersView.setMargin(okBtn2, new Insets(10,WIDTH/2-BTN_WIDTH/2,10,WIDTH/2-BTN_WIDTH/2));
-        //AnswersView.setMargin(labelScore, new Insets(10,WIDTH/4,10,WIDTH/4));
+       
     }
     
     int num=1;
+    //сцена с вопросами к ЛПР
     public void ask(){
         num=1;
         Button decisionBtn= new Button("Ответить");
@@ -357,15 +563,15 @@ public class ZAPROS extends Application {
         
         decisionBtn.setOnAction(event -> {
             num++;
-            selection = (RadioButton) group.getSelectedToggle();
-            if(selection!=null){
-                answer.decision= selection.getId();
+            selectionAnswer = (RadioButton) group.getSelectedToggle();
+            if(selectionAnswer!=null){
+                answer.decision= selectionAnswer.getId();
                 zapros.answer_list.add(answer);
                 //System.out.println("Answer: "+answer.decision+", session: "+ask.session);
                 if (ask.session<3) {
                     answer = ask.nextAnswer();
                     group = updateAskField(ask, answer, numOfQuestions, num);
-                    selection = (RadioButton) group.getSelectedToggle();
+                    selectionAnswer = (RadioButton) group.getSelectedToggle();
                 }
                 else {
                     countOfPairs--;
@@ -379,11 +585,13 @@ public class ZAPROS extends Application {
                         decisionBtn.setDisable(true);
                     }
                 }
-            } else showAlert();
+            }
         });
         
     }
     
+    
+    //создаем пустую сцену для вопросов
     public void createAskField(){
         //Label question = new Label(zapros.question);
         AskView.getRowConstraints().add(new RowConstraints(50));
@@ -393,6 +601,7 @@ public class ZAPROS extends Application {
         AskView.getColumnConstraints().add(new ColumnConstraints(50));
     }
     
+    //обновляем вопрос к ЛПР
     public ToggleGroup updateAskField(Ask ask, Answer answer, int numOfQuestions, int num){
         String question1, question2;
         Label question = new Label(num+"/"+numOfQuestions+" "+zapros.question);
@@ -407,22 +616,24 @@ public class ZAPROS extends Application {
         
         RadioButton ans1 = new RadioButton(question1);
         RadioButton ans2 = new RadioButton(question2);
-        //RadioButton ans3 = new RadioButton("Без разницы");
+        RadioButton ans3 = new RadioButton("Без разницы");
         ans1.setSelected(true);
         ans1.setId("first");
         ans2.setId("second");
-        //ans3.setId("not matter");
+        ans3.setId("not matter");
         ToggleGroup group = new ToggleGroup();
         ans1.setToggleGroup(group);
         ans2.setToggleGroup(group);
-        //ans3.setToggleGroup(group);
+        ans3.setToggleGroup(group);
         
         AskView.add(question, 1,0);
         AskView.add(ans1, 1, 1);
         AskView.add(ans2, 1, 2);
-        //AskView.add(ans3, 1, 3);
+        if (selectionZapros.getId()=="3") AskView.add(ans3, 1, 3);
         return group;  
     }
+    
+    //удаление узла по координатам
     public void removeNodeByRowColumnIndex(final int column,final int row,GridPane gridPane) {
         ObservableList<Node> childrens = gridPane.getChildren();
         for(Node node : childrens) {
@@ -432,7 +643,7 @@ public class ZAPROS extends Application {
             }
         }
     }
-
+    /*
     private void showAlert() {
         Alert alert = new Alert(AlertType.ERROR);
         alert.setTitle("Ошибка!");
@@ -442,8 +653,9 @@ public class ZAPROS extends Application {
         alert.setContentText("Выберите ответ!");
  
         alert.showAndWait();
-    }
+    }*/
     
+    //выбор директории исходных файлов
     private void configuringDirectoryChooser(DirectoryChooser directoryChooser) {
         // Set title for DirectoryChooser
         directoryChooser.setTitle("Select Directory");

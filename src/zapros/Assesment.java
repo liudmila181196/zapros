@@ -10,6 +10,7 @@ public class Assesment {
     public int criteria_id;
     public int id;
     public int rang;
+    public ArrayList<Assesment> equals = new ArrayList<Assesment>();
     
     public Assesment(){}
     
@@ -17,6 +18,7 @@ public class Assesment {
         this.name = name;
         this.criteria_id = criteria_id;
         this.id=id;
+        this.rang=0;
     }
     
     public ArrayList<Assesment> readFile(String filename){

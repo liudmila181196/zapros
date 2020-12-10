@@ -8,14 +8,14 @@ import java.util.Scanner;
 public class PairCriteria {
     public int crit1;
     public int crit2;
-    public boolean uses;
+    
     
     public PairCriteria(){}
     
-    public PairCriteria(int crit1, int crit2, boolean uses){
+    public PairCriteria(int crit1, int crit2){
         this.crit1 = crit1;
         this.crit2=crit2;
-        this.uses=uses;
+        
     }
     
     public ArrayList<PairCriteria> readFile(String filename){
@@ -29,7 +29,7 @@ public class PairCriteria {
             String s;
             while((s=sc.nextLine())!=null){
                 String[] words = s.split(";");
-                list.add(new PairCriteria(Integer.parseInt(words[0]), Integer.parseInt(words[1]), Boolean.parseBoolean(words[2])));
+                list.add(new PairCriteria(Integer.parseInt(words[0]), Integer.parseInt(words[1])));
             }
             sc.close();
         }

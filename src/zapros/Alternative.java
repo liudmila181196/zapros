@@ -3,24 +3,44 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.io.InputStream;
+import java.io.PrintWriter;
+
 public class Alternative {
     public String name;
     public int id;
-    public ArrayList<Integer> criteria_assesments = new ArrayList<Integer>();
-    //Integer assessment1_id;
-    //Integer assessment2_id;
-    //Integer assessment3_id;
-    public float value;
+    public ArrayList<Integer> criteria_assesments = new ArrayList<Integer>();//оценки исходные
+    public int rang;
+    public ArrayList<Integer> criteria_rangs = new ArrayList<Integer>();//ранги оценок
     
     public Alternative(){
         
     }
     
-    public Alternative( int id, String name, ArrayList<Integer> criteria_assesments, float value){
+    public String getName(){
+        return this.name;
+    }
+    
+    public int getId(){
+        return this.id;
+    }
+    
+    public ArrayList<Integer> getCriteria_assesments(){
+        return this.criteria_assesments;
+    }
+    
+    public ArrayList<Integer> getCriteria_rangs(){
+        return this.criteria_rangs;
+    }
+    
+    public int getRang(){
+        return this.rang;
+    }
+    
+    public Alternative( int id, String name, ArrayList<Integer> criteria_assesments, int rang){
         this.criteria_assesments=criteria_assesments;
         this.id=id;
         this.name=name;
-        this.value=value;
+        this.rang=rang;
     }
     
     public ArrayList<Alternative> readFile(String filename){
@@ -51,4 +71,6 @@ public class Alternative {
         }
         return list;
     }
+    
+    
 }

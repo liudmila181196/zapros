@@ -11,8 +11,8 @@ public class Data {
     public ArrayList<PairCriteria> pair_list;
     public String question;
     
+    
     public Data(String path){
-        //добавить сортировку списков
         Alternative alt = new Alternative();
         this.alternative_list=alt.readFile(path);
         Assesment assesment=new Assesment();
