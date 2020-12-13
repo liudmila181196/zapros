@@ -38,12 +38,12 @@ public class Ask {
             session++;
             //если был выбран первый вариант ответа, ухудшаем пару 11, 12
             if (lastAnswer.decision.equals("first")){
-                int[] new_ass_arr = change_assesments(lastAnswer.as11, lastAnswer.as12, assesments1);
+                int[] new_ass_arr = change_assesments(lastAnswer.as11, lastAnswer.as12);
                 lastAnswer=new Answer(new_ass_arr[0], new_ass_arr[1], lastAnswer.as21, lastAnswer.as22, pair);
             }
             //иначе ухудшаем пару 21, 22
             else {
-                int[] new_ass_arr = change_assesments(lastAnswer.as21, lastAnswer.as22, assesments2);
+                int[] new_ass_arr = change_assesments(lastAnswer.as21, lastAnswer.as22);
                 lastAnswer=new Answer(lastAnswer.as11, lastAnswer.as12, new_ass_arr[0], new_ass_arr[1], pair);
             }
         }
@@ -52,11 +52,11 @@ public class Ask {
             session++;
             //если одна из оценок наихудшая, ухудшаем наилучшую оценку из пары
             if(lastAnswer.as11==assesments1.size() || lastAnswer.as12==assesments1.size()){
-                int[] new_ass_arr = change_assesments(lastAnswer.as21, lastAnswer.as22, assesments2);
+                int[] new_ass_arr = change_assesments(lastAnswer.as21, lastAnswer.as22);
                 lastAnswer=new Answer(lastAnswer.as11, lastAnswer.as12, new_ass_arr[0], new_ass_arr[1], pair);
             }
             else if (lastAnswer.as21==assesments2.size() || lastAnswer.as22==assesments2.size()){
-                int[] new_ass_arr = change_assesments(lastAnswer.as11, lastAnswer.as12, assesments1);
+                int[] new_ass_arr = change_assesments(lastAnswer.as11, lastAnswer.as12);
                 lastAnswer=new Answer(new_ass_arr[0], new_ass_arr[1], lastAnswer.as21, lastAnswer.as22, pair);
             }
         }
@@ -64,18 +64,27 @@ public class Ask {
     }
     
     //ухудшаем худшую оценку в паре
-    public int[] change_assesments(int as1, int as2, ArrayList<Assesment> as_list){
+    public int[] change_assesments(int as1, int as2 ){
         if (as2==1){
-            if (as1<as_list.size()){
+            if (as1<max_assesment(assesments1)){
                 as1++;
             }
         }
         else {
-            if (as2<as_list.size()){
+            if (as2<max_assesment(assesments2)){
                 as2++;
             }
         }
         
         return new int[]{as1, as2};
+    }
+    
+    //максимальная оценка в списке
+    public int max_assesment(ArrayList<Assesment> as_list){
+        int max=0;
+        for (Assesment a: as_list){
+            if (a.id>max) max=a.id;
+        }
+        return max;
     }
 }

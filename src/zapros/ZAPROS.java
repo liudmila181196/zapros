@@ -374,7 +374,7 @@ public class ZAPROS extends Application {
             data.add(zapros.answer_list.get(i));
         }
         Scale scale = new Scale();
-        ArrayList<LinkedHashMap<String, Integer[]>> scales = scale.buildScale(zapros, Integer.parseInt(selectionZapros.getId()));
+        ArrayList<LinkedHashMap<String, Integer[]>> scales = scale.buildScale(zapros);
         
         String uniscale = scale.buildUnifiedScale(scales, Integer.parseInt(selectionZapros.getId()), zapros);
         time = (System.nanoTime() - time);

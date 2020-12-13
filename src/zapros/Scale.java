@@ -9,7 +9,7 @@ public class Scale {
     ArrayList<LinkedHashMap<String, Integer[]>> epsh;//шкалы пар критериев, строка - имя оценки, массив хранит id критерия и оценки
     
     //строим для каждой пары критериев шкалу на основе ответов ЛПР
-    public ArrayList<LinkedHashMap<String, Integer[]>> buildScale(Data zapros, int variant){
+    public ArrayList<LinkedHashMap<String, Integer[]>> buildScale(Data zapros){
         int id=0;
         
         epsh = new ArrayList<LinkedHashMap<String, Integer[]>>();
