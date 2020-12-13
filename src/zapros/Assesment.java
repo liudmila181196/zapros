@@ -10,7 +10,7 @@ public class Assesment {
     public int criteria_id;
     public int id;
     public int rang;
-    public ArrayList<Assesment> equals = new ArrayList<Assesment>();
+    public ArrayList<Assesment> equals = new ArrayList<Assesment>();//список равных оценок
     
     public Assesment(){}
     
@@ -20,7 +20,7 @@ public class Assesment {
         this.id=id;
         this.rang=0;
     }
-    
+    //чтение исходных данных
     public ArrayList<Assesment> readFile(String filename){
         ArrayList<Assesment> list = new ArrayList();
         String encoding = System.getProperty("console.encoding", "utf-8");

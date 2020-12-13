@@ -24,8 +24,6 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.VBox;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ListView;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.stage.DirectoryChooser;
 import java.io.File;
 import java.io.FileWriter;
@@ -34,6 +32,10 @@ import java.io.PrintWriter;
 import javafx.geometry.Pos; 
 import java.util.Random;
 import java.util.*;
+import java.io.InputStream;
+import javafx.scene.control.Alert;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.Image;
 
 public class ZAPROS extends Application {
     GridPane AskView;
@@ -59,35 +61,42 @@ public class ZAPROS extends Application {
     Button btnAnswerView;
     Button btnScaleView;
     Button btnAlterView;
-    Button btnOk = new Button("В главное меню");
+    Button btnOk = new Button("В главное меню", getImageView("home-page"));
     Button btnReturnToAnswerView;
     Button btnReturnToScaleView;
     Button btnSettings;
     static final int WIDTH = 1400;//ширина окна
     static final int HEIGHT = 700;//высота окна
     
+    long time;
+    long time2;
+    
+    public static String styleHead = "-fx-font-size: 2em; ";
+    
     @Override
     public void start(Stage primaryStage) {
         selectionZapros = new RadioButton();
         selectionZapros.setId("2");
         
-        Button btnStart = new Button();
-        btnStart.setText("Старт");
+        Button btnStart = new Button("Старт", getImageView("start"));
         btnStart.setOnAction(new EventHandler<ActionEvent>() {
             
             @Override
             public void handle(ActionEvent event) {
                 AskView = new GridPane();
                 zapros=new Data(path);
-                ask();
+                if (zapros.isDataOk){
+                    ask();
                 
-                Scene sceneAsk = new Scene (AskView, WIDTH, HEIGHT);
-                primaryStage.setScene(sceneAsk);
-                primaryStage.show();
+                    Scene sceneAsk = new Scene (AskView, WIDTH, HEIGHT);
+                    primaryStage.setScene(sceneAsk);
+                    primaryStage.show();
+                }
+                
             }
         });
         
-        btnSettings = new Button("Настройки");
+        btnSettings = new Button("Настройки", getImageView("settings"));
         btnSettings.setOnAction(new EventHandler<ActionEvent>() {
             
             @Override
@@ -100,8 +109,7 @@ public class ZAPROS extends Application {
             }
         });
         
-        btnAnswerView = new Button();
-        btnAnswerView.setText("Посмотреть ответы");
+        btnAnswerView = new Button("Посмотреть ответы", getImageView("next"));
         btnAnswerView.setOnAction(new EventHandler<ActionEvent>() {
             
             @Override
@@ -114,12 +122,12 @@ public class ZAPROS extends Application {
             }
         });
         
-        btnScaleView = new Button();
-        btnScaleView.setText("Построить шкалы");
+        btnScaleView = new Button("Построить шкалы", getImageView("next"));
         btnScaleView.setOnAction(new EventHandler<ActionEvent>() {
             
             @Override
             public void handle(ActionEvent event) {
+                time = System.nanoTime();
                 ScaleView = new VBox();
                 createScaleView();
                 sceneScaleView = new Scene (ScaleView, WIDTH, HEIGHT);
@@ -128,12 +136,12 @@ public class ZAPROS extends Application {
             }
         });
         
-        btnAlterView = new Button();
-        btnAlterView.setText("Ранжировать альтернативы");
+        btnAlterView = new Button("Ранжировать альтернативы", getImageView("next"));
         btnAlterView.setOnAction(new EventHandler<ActionEvent>() {
             
             @Override
             public void handle(ActionEvent event) {
+                time2 = System.nanoTime();
                 AlterView = new VBox();
                 createAlterView();
                 Scene sceneAlterView = new Scene (AlterView, WIDTH, HEIGHT);
@@ -143,7 +151,7 @@ public class ZAPROS extends Application {
         });
         
         
-        btnReturnToAnswerView = new Button("Вернуться к ответам");
+        btnReturnToAnswerView = new Button("Вернуться к ответам", getImageView("back"));
         
         btnReturnToAnswerView.setOnAction(new EventHandler<ActionEvent>() {
             
@@ -155,7 +163,7 @@ public class ZAPROS extends Application {
             }
         });
         
-        btnReturnToScaleView = new Button("Вернуться к шкалам");
+        btnReturnToScaleView = new Button("Вернуться к шкалам", getImageView("back"));
         
         btnReturnToScaleView.setOnAction(new EventHandler<ActionEvent>() {
             
@@ -167,28 +175,31 @@ public class ZAPROS extends Application {
             }
         });
         
-        Button btnRandomAsk = new Button("Ответить рандомно");
+        Button btnRandomAsk = new Button("Случайные ответы", getImageView("shuffle"));
         
         btnRandomAsk.setOnAction(new EventHandler<ActionEvent>() {
             
             @Override
             public void handle(ActionEvent event) {
                 zapros=new Data(path);
-                randomAsk();
-                AnswerView = new VBox();
-                createAnswerView();
-                sceneAnswerView = new Scene (AnswerView, WIDTH, HEIGHT);
-                primaryStage.setScene(sceneAnswerView);
-                primaryStage.show();
+                if (zapros.isDataOk){
+                    randomAsk();
+                    AnswerView = new VBox();
+                    createAnswerView();
+                    sceneAnswerView = new Scene (AnswerView, WIDTH, HEIGHT);
+                    primaryStage.setScene(sceneAnswerView);
+                    primaryStage.show();
+                }
             }
         });
         
-        
+        Label label = new Label("ЗАПРОС II, III");
+        label.setStyle(styleHead);
         
         VBox root = new VBox();
         root.setSpacing(10);
         root.setAlignment(Pos.CENTER);
-        root.getChildren().addAll(btnStart, btnSettings, btnRandomAsk);
+        root.getChildren().addAll(label, btnStart, btnSettings, btnRandomAsk);
         
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         
@@ -207,10 +218,14 @@ public class ZAPROS extends Application {
         
     }
     
+    
+    
     //сцена с альтернативами
     public void createAlterView(){
         Scale scale = new Scale();
         scale.compareAlternatives(zapros);
+        time2 = (System.nanoTime() - time2);
+        double timed = (double) time2/1000000.0;
         ObservableList<Alternative> data = FXCollections.observableArrayList(zapros.alternative_list); 
         TableView<Alternative> table = new TableView<Alternative>(data);
         table.setPrefWidth(500);
@@ -238,13 +253,15 @@ public class ZAPROS extends Application {
         TableColumn<Alternative, Integer> rangColumn = new TableColumn<Alternative, Integer>("Относительный ранг");
         rangColumn.setCellValueFactory(new PropertyValueFactory<Alternative, Integer>("rang"));
         table.getColumns().add(rangColumn);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         //заголовок
-        Label labelScore = new Label("Список альтернатив");
-        Button btnSave = new Button("Сохранить результат");
-        //кнопка возврата в меню
-        //Button okBtn2 = new Button("OK");
-        //страница рекордов
-        AlterView.getChildren().addAll(labelScore,table, btnSave, btnReturnToScaleView, btnOk);
+        Label label = new Label("Список альтернатив");
+        label.setStyle(styleHead);
+        Button btnSave = new Button("Сохранить результат", getImageView("upload"));
+        
+        Label timeLabel = new Label("Время выполнения: "+String.format("%.6f",timed)+" мс");
+        
+        AlterView.getChildren().addAll(label,table, timeLabel, btnSave, btnReturnToScaleView, btnOk);
         AlterView.setPadding(new Insets(50));
         AlterView.setSpacing(10);
         
@@ -272,6 +289,8 @@ public class ZAPROS extends Application {
     
     //сцена настроек
     public void createSettingsView(){
+        Label label = new Label("Настройки");
+        label.setStyle(styleHead);
         Label l = new Label("Выберите метод:");
         RadioButton zapros2 = new RadioButton("ЗАПРОС II");
         RadioButton zapros3 = new RadioButton("ЗАПРОС III");
@@ -282,7 +301,7 @@ public class ZAPROS extends Application {
         zapros2.setToggleGroup(group);
         zapros3.setToggleGroup(group);
         
-        Button btnSetZapros = new Button("Изменить");
+        Button btnSetZapros = new Button("Изменить", getImageView("ok"));
         btnSetZapros.setOnAction(new EventHandler<ActionEvent>() {
             
             @Override
@@ -295,7 +314,7 @@ public class ZAPROS extends Application {
         configuringDirectoryChooser(directoryChooser);
         
         Label lDir = new Label("Загрузить исходные данные:");
-        Button btnChooseDir = new Button("Загрузить");
+        Button btnChooseDir = new Button("Загрузить", getImageView("download"));
  
         btnChooseDir.setOnAction(new EventHandler<ActionEvent>() {
  
@@ -308,7 +327,7 @@ public class ZAPROS extends Application {
             }
         });
         
-        SettingsView.getChildren().addAll(l, zapros2, zapros3, btnSetZapros, lDir,  btnChooseDir, btnOk);
+        SettingsView.getChildren().addAll(label, l, zapros2, zapros3, btnSetZapros, lDir,  btnChooseDir, btnOk);
         SettingsView.setPadding(new Insets(50));
         SettingsView.setSpacing(10);
         SettingsView.setAlignment(Pos.CENTER);
@@ -356,23 +375,13 @@ public class ZAPROS extends Application {
         }
         Scale scale = new Scale();
         ArrayList<LinkedHashMap<String, Integer[]>> scales = scale.buildScale(zapros, Integer.parseInt(selectionZapros.getId()));
-        ArrayList<LinkedHashMap<String, Integer[]>> scalescopy = new ArrayList<LinkedHashMap<String, Integer[]>>();
-        int i=0;
-        for (LinkedHashMap<String, Integer[]> list:scales){
-            
-            LinkedHashMap<String, Integer[]> listcopy = new LinkedHashMap<String, Integer[]>();
-            for (Map.Entry<String, Integer[]> str:list.entrySet()){
-                listcopy.put(str.getKey(), str.getValue());
-            }
-            //scalescopy.add(new LinkedHashMap<String, Integer[]>());
-            scalescopy.add(listcopy);
-            i++;
-        }
-        //ArrayList<String> uniScale = scale.buildUnifiedScale(scalescopy, Integer.parseInt(selectionZapros.getId()), zapros);
-        String uniscale = scale.buildUnifiedScale(scalescopy, Integer.parseInt(selectionZapros.getId()), zapros);
+        
+        String uniscale = scale.buildUnifiedScale(scales, Integer.parseInt(selectionZapros.getId()), zapros);
+        time = (System.nanoTime() - time);
+        double timed = (double) time/1000000.0;
         ArrayList <String> stringScales = new ArrayList<String>();
         
-        i=0;
+        int i=0;
         for (LinkedHashMap<String, Integer[]> sc: scales){
             String s = "Шкала для критериев ";
             s+=zapros.criteria_list.get(zapros.pair_list.get(i).crit1-1).name + " и " +zapros.criteria_list.get(zapros.pair_list.get(i).crit2-1).name+" : ";
@@ -387,7 +396,7 @@ public class ZAPROS extends Application {
             }
                 s=s.substring(0, s.length()-4);
             }
-            //int a=1, b=1;
+            
             if (Integer.parseInt(selectionZapros.getId())==3){
                 for (Map.Entry<String, Integer[]> str:sc.entrySet()){
                     if (j<sc.size()-1)
@@ -403,34 +412,6 @@ public class ZAPROS extends Application {
         }
         
         String s = "Единая Порядковая Шкала: ";
-        /*int j=0;
-        
-        if (Integer.parseInt(selectionZapros.getId())==2){
-            for (String str: uniScale){
-                if (j>zapros.criteria_list.size()-2) s+=str+" -> ";
-                else s+=str+" , ";
-                j++;
-            }
-            s=s.substring(0, s.length()-4);
-            stringScales.add(s);
-        }
-        if (Integer.parseInt(selectionZapros.getId())==3){
-            for (String str: uniScale){
-                
-                if (j>zapros.criteria_list.size()-2) s+=str+" > ";
-                else s+=str+" , ";
-                j++;
-            }
-            s=s.substring(0, s.length()-4);
-            stringScales.add(s);
-            stringScales.add("Ранги оценок: ");
-            
-            for (Assesment a: zapros.assesment_list){
-                stringScales.add("R("+zapros.criteria_list.get(a.criteria_id-1).name+
-                                ", "+1+"-"+a.id+") => "+a.rang);
-            }
-            
-        }*/
         
         stringScales.add(s);
         stringScales.add(uniscale);
@@ -442,17 +423,17 @@ public class ZAPROS extends Application {
             }
         }
         
-        
         ObservableList<String> langs = FXCollections.observableArrayList(stringScales);
         ListView<String> langsListView = new ListView<String>(langs);
-        // столбцы
-        //заголовок
-        Label labelScore = new Label("Шкалы");
-        //кнопка возврата в меню
-        Button btnSave = new Button("Сохранить результат");
         
+        Label labelScale = new Label("Шкалы");
+        labelScale.setStyle(styleHead);
         
-        ScaleView.getChildren().addAll(labelScore,langsListView, btnAlterView, btnSave, btnReturnToAnswerView);
+        Button btnSave = new Button("Сохранить результат", getImageView("upload"));
+        
+        Label timeLabel = new Label("Время выполнения: "+String.format("%.6f",timed)+" мс");
+        
+        ScaleView.getChildren().addAll(labelScale,langsListView, timeLabel, btnAlterView, btnSave, btnReturnToAnswerView);
         ScaleView.setPadding(new Insets(50));
         ScaleView.setSpacing(10);
         
@@ -478,9 +459,6 @@ public class ZAPROS extends Application {
             }
         });
         
-        
-        //AnswersView.setMargin(okBtn2, new Insets(10,WIDTH/2-BTN_WIDTH/2,10,WIDTH/2-BTN_WIDTH/2));
-        //AnswersView.setMargin(labelScore, new Insets(10,WIDTH/4,10,WIDTH/4));
     }
     
     //сцена с ответами
@@ -514,11 +492,13 @@ public class ZAPROS extends Application {
         table.getColumns().add(as21Column);
         table.getColumns().add(as22Column);
         table.getColumns().add(answerColumn);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         //заголовок
-        Label labelScore = new Label("Список ответов");
-        Button btnSave = new Button("Сохранить результат");
+        Label label = new Label("Список ответов");
+        label.setStyle(styleHead);
+        Button btnSave = new Button("Сохранить результат", getImageView("upload"));
         
-        AnswerView.getChildren().addAll(labelScore,table, btnScaleView, btnSave);
+        AnswerView.getChildren().addAll(label,table, btnScaleView, btnSave);
         AnswerView.setPadding(new Insets(50));
         AnswerView.setSpacing(10);
         
@@ -550,7 +530,7 @@ public class ZAPROS extends Application {
     //сцена с вопросами к ЛПР
     public void ask(){
         num=1;
-        Button decisionBtn= new Button("Ответить");
+        Button decisionBtn= new Button("Ответить", getImageView("ok"));
         countOfPairs = zapros.pair_list.size();
         int numOfQuestions = zapros.assesment_list.size();
         
@@ -662,6 +642,15 @@ public class ZAPROS extends Application {
  
         // Set Initial Directory
         directoryChooser.setInitialDirectory(new File(System.getProperty("user.home")));
+    }
+    
+    public ImageView getImageView(String imageName){
+       InputStream input = getClass().getResourceAsStream("/zapros/icon/"+imageName+".png");
+       Image image = new Image(input, 30,30, true, true);
+       ImageView imageView = new ImageView(image);
+       //imageView.setFitHeight(30);
+       //imageView.setPreserveRatio(true);
+       return imageView;
     }
     
     public static void main(String[] args) {

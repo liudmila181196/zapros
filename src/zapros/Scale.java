@@ -5,20 +5,17 @@ import java.util.Comparator;
 import java.util.*;
 
 public class Scale {
-    //ArrayList<ArrayList<String>> epsh_str;
-    //ArrayList<ArrayList<Integer[]>> epsh_int;
     ArrayList<ArrayList<String>> epsh_sign;//лист знаков сравнения (>, =) для каждой шкалы
-    ArrayList<LinkedHashMap<String, Integer[]>> epsh;//шкалы сравнения пар критериев
+    ArrayList<LinkedHashMap<String, Integer[]>> epsh;//шкалы пар критериев, строка - имя оценки, массив хранит id критерия и оценки
     
     //строим для каждой пары критериев шкалу на основе ответов ЛПР
     public ArrayList<LinkedHashMap<String, Integer[]>> buildScale(Data zapros, int variant){
         int id=0;
-        //epsh_str = new ArrayList<ArrayList<String>>();
-        //epsh_int = new ArrayList<ArrayList<Integer[]>>();
+        
         epsh = new ArrayList<LinkedHashMap<String, Integer[]>>();
         epsh_sign = new ArrayList<ArrayList<String>>();
         
-        //для каждой пары критериев
+        //для каждой пары критериев строим шкалу, их должно быть столько же, сколько пар критериев
         while (epsh.size()<zapros.pair_list.size()){
             
             int crit1_id = zapros.answer_list.get(id).pair.crit1;
@@ -27,7 +24,7 @@ public class Scale {
             ArrayList<Assesment> assesments1=new ArrayList();
             ArrayList<Assesment> assesments2=new ArrayList();
             
-            //оценки для критериев
+            //находим оценки для критериев
             for(Assesment assesment :zapros.assesment_list){
                 if (assesment.criteria_id==crit1_id){
                     assesments1.add(assesment);
@@ -39,12 +36,10 @@ public class Scale {
             
             int len_assesment=assesments1.size();
             
-            //ArrayList<Answer> ans_list = new ArrayList<Answer>();
-            //ans_list = zapros.answer_list.
-            
             LinkedHashMap<String, Integer[]> scale = new LinkedHashMap<String, Integer[]>();
             ArrayList<String> scale_sign = new ArrayList<String>();
             
+            //заносим в шкалу наилучшие (начальные) оценки критериев
             scale.put(assesments1.get(0).name, new Integer[]{crit1_id,assesments1.get(0).id});
             scale.put(assesments2.get(0).name, new Integer[]{crit2_id,assesments2.get(0).id});
             scale_sign.add(" , ");
@@ -52,23 +47,32 @@ public class Scale {
             
             //создаем шкалу для пары критериев
             for (int i=0;i<len_assesment;i++){
+                //возвращаем решение и оценку, отличающуюся от начальной(наилучшей)
                 int[] change = get_change_req(zapros.answer_list.get(id), zapros);
+                
+                //если выбран первый вариант ответа
                 if (change[0]==1) {
+                    //если в шкале еще нет выбранной оценки, добавляем в шкалу
                     if (!scale.containsKey(assesments1.get(change[1]-1).name)) {
                         scale.put(assesments1.get(change[1]-1).name, new Integer[]{crit1_id,assesments1.get(change[1]-1).id});
                     }
                     scale_sign.add(" > ");
                 }
+                //если выбран первый вариант ответа
                 else if (change[0]==2){
+                    //если в шкале еще нет выбранной оценки, добавляем в шкалу
                     if (!scale.containsKey(assesments2.get(change[1]-1).name)) {
                         scale.put(assesments2.get(change[1]-1).name, new Integer[]{crit2_id,assesments2.get(change[1]-1).id});
                     }
                     scale_sign.add(" > ");
                 }
+                //если выбран вариант "Без разницы"
                 else if (change[0]==3){
                     scale_sign.add(" = ");
+                    //добавляем друг другу в списки равных оценок
                     assesments1.get(change[1]-1).equals.add(assesments2.get(change[1]-1));
                     assesments2.get(change[1]-1).equals.add(assesments1.get(change[1]-1));
+                    //если оценок еще нет в шкале, добавляем
                     if (!scale.containsKey(assesments1.get(change[1]-1).name)) {
                         scale.put(assesments1.get(change[1]-1).name, new Integer[]{crit1_id,assesments1.get(change[1]-1).id});
                     }
@@ -78,6 +82,7 @@ public class Scale {
                 }
                 id++;
             }
+            //если какие то оценки не были добавлены в шкалу, заносим в конец
             for (Assesment as: assesments1){
                 if (!scale.containsKey(as.name)) {
                     scale.put(as.name,new Integer[]{as.criteria_id,as.id});
@@ -91,7 +96,6 @@ public class Scale {
                 }
             }
             epsh.add(scale);
-            //epsh_sign.add(new ArrayList<String>());
             epsh_sign.add(scale_sign);
         }
         return epsh;
@@ -104,14 +108,16 @@ public class Scale {
         }
         return min;
     }
+    
     //возвращаем решение и оценку, отличающуюся от начальной(наилучшей)
     public int[] get_change_req(Answer answer, Data zapros){
         int[] change = {0,0};
-        int a_ass_start = start_id_ass_by_crit(answer.pair.crit1, zapros);
-        int b_ass_start = start_id_ass_by_crit(answer.pair.crit2, zapros);
+        int a_ass_start = start_id_ass_by_crit(answer.pair.crit1, zapros);//наилучшая оценка критерия 1
+        int b_ass_start = start_id_ass_by_crit(answer.pair.crit2, zapros);//наилучшая оценка критерия 2
+        //если выбран первый вариант ответа
         if (answer.decision == "first"){
-            change[0]=1;
-            change[1] = answer.as11>a_ass_start?answer.as11:answer.as12;
+            change[0]=1;//номер ответа
+            change[1] = answer.as11>a_ass_start?answer.as11:answer.as12;//возвращаем ту оценку, что отличается от наилучшей
         }
         else if (answer.decision == "second"){
             change[0]=2;
@@ -133,108 +139,108 @@ public class Scale {
         double j=1;
         as[n-1]=n;
         
-        //"баллы" за место оценки в шкале
+        //"баллы" за место оценки в шкале, разница между ними тем больше, чем дальше стоит оценка в шкале
         for (int i=n-2;i>=0;i--){
             as[i] = as[i+1]-j;
             j=j+0.5;
-            //System.out.println(as[i]);
         }
         
-        SortedMap <String, Double> map = new TreeMap<String, Double>();
-        SortedSet<Map.Entry<String, Double>> sortedset = new TreeSet<Map.Entry<String, Double>>(orderComp);
-        SortedMap <String, Double> map2 = new TreeMap<String, Double>();
-        SortedSet<Map.Entry<String, Double>> sortedset2 = new TreeSet<Map.Entry<String, Double>>(orderComp);
+        SortedMap <String, Double> map = new TreeMap<String, Double>();//список названий оценок и их баллов
+        SortedSet<Map.Entry<String, Double>> sortedset = new TreeSet<Map.Entry<String, Double>>(orderComp);//список сортируется по баллам
         
         //создаем общий список всех оценок с баллами
+        //для запрос 2 ключом является имя оценки
         if (method==2){
             for (HashMap<String, Integer[]> l:scale){
                 int i=0;
                 for (Map.Entry<String, Integer[]> str :l.entrySet()){
+                    //если в мэпе еще нет такой оценки, добавляем с баллами за текущее положение в шкале
                     if (!map.containsKey(str.getKey())) {
-                        map.put(str.getKey(),as[i]);
-                        map2.put(str.getKey(), as[i]);
+                        map.put(str.getKey(), as[i]);
                     }
+                    //иначе суммируем баллы
                     else {
                         map.put(str.getKey(), as[i]+map.get(str.getKey()));
-                        map2.put(str.getKey(), as[i]+map2.get(str.getKey()));
                     }
                     i++;
                 }
             }            
         }
+        //для запрос 3 ключом будет запись в виде R(название_критерия, 1-id_оценки)
         else if (method==3){
             for (HashMap<String, Integer[]> l:scale){
                 int i=0;
                 for (Map.Entry<String, Integer[]> str :l.entrySet()){
-                    String s = "R("+data.criteria_list.get(str.getValue()[0]-1).name+", "+1+"-"+str.getValue()[1]+") ";
-                    if (!map.containsKey(s)) {
-                        map.put(s,as[i]);
-                        map2.put(str.getKey(), as[i]);
+                    if (!map.containsKey(str.getKey())) {
+                        map.put(str.getKey(), as[i]);
                     }
                     else {
-                        map.put(s, as[i]+map.get(s));
-                        map2.put(str.getKey(), as[i]+map2.get(str.getKey()));
+                        map.put(str.getKey(), as[i]+map.get(str.getKey()));
                     }
                     i++;
                 }
             }
         }
+        //сортируем список по баллам
         sortedset.addAll(map.entrySet());
-        /*for (Map.Entry<String, Double> item :sortedset){
-            System.out.println(item.getKey()+" "+item.getValue());
-            uniScale.add(item.getKey());
-            
-        }*/
-        
-        sortedset2.addAll(map2.entrySet());
         int i=2;
+        
         //проставляем ранги для оценок
-        for (Map.Entry<String, Double> item :sortedset2){
+        for (Map.Entry<String, Double> item :sortedset){
+            //находим нужную оценку
             for (Assesment a: data.assesment_list){
                 if (a.name.equals(item.getKey())) {
-                    if (a.id==1) a.rang=1;
-                    else if (a.rang==0){
-                        if (!a.equals.isEmpty()){
+                    if (a.id==1) a.rang=1; //если оценка наилучшая, сразу присваем ранг 1
+                    else if (a.rang==0){//если ранг еще не назначен
+                        if (!a.equals.isEmpty()){//если у оценки есть равные оценки
                             int rang=0;
                             for (Assesment b:a.equals){
-                                if (b.rang>0) rang=b.rang;
+                                if (b.rang>0) rang=b.rang;//находим назначенный ранг у равных оценок
                             }
-                            if (rang>0) {
+                            if (rang>0) {//если у равных оценок назначен ранг, назначим его текущей оценке
                                 a.rang=rang;
                             }
                             else {
-                                a.rang=i;
+                                a.rang=i;//если у равных оценок не назначен ранг, присваиваем текущее положение в списке
                                 i++;
                             }
-                        }else {
+                        }else {//присваиваем текущее положение в списке
                             a.rang=i;
                             i++;
                         }
                     }
-                    System.out.println(a.criteria_id+" "+a.id+" "+item.getKey()+" "+item.getValue()+" "+a.rang);
+                    //System.out.println(a.criteria_id+" "+a.id+" "+item.getKey()+" "+item.getValue()+" "+a.rang);
                 }
             }
         }
-        SortedMap <String, Integer> map3 = new TreeMap<String, Integer>();
-        SortedSet<Map.Entry<String, Integer>> sortedset3 = new TreeSet<Map.Entry<String, Integer>>(orderCompRang);
+        
+        SortedMap <String, Integer> map2 = new TreeMap<String, Integer>();//список оценок с названием и рангом
+        SortedSet<Map.Entry<String, Integer>> sortedset2 = new TreeSet<Map.Entry<String, Integer>>(orderCompRang);//список сортируется по рангу
+        
+        //заполняем список оценками с их рангами
         for (Assesment a: data.assesment_list){
-            map3.put(a.name, a.rang);
+            map2.put(a.name, a.rang);
         }
-        sortedset3.addAll(map3.entrySet());
+        //сортируем по рангу
+        sortedset2.addAll(map2.entrySet());
+        
         int rang=0, z=0;
         String sign ="";
         
         //склеиваем все в единую шкалу
         if (method==3){
-            for (Map.Entry<String, Integer> item :sortedset3){
+            for (Map.Entry<String, Integer> item :sortedset2){
                 for (Assesment a: data.assesment_list){
+                    //находим нужную оценку
                     if (a.name.equals(item.getKey())){
+                        //если оценка не наилучшая (не одна из первых)
                         if (z>data.criteria_list.size()-2){
                             if (a.rang==rang && rang!=1) sign=" = ";
                             else if (a.rang!=1) sign=" > ";
-
+                            //записываем в виде R(название_критерия, 1-id_оценки)
                             unisc+=sign+"R("+data.criteria_list.get(a.criteria_id-1).name+", "+1+"-"+a.id+") ";
                         }
+                        //иначе перечисляем через запятую
                         else unisc+="R("+data.criteria_list.get(a.criteria_id-1).name+", "+1+"-"+a.id+") "+" , ";
                         rang=a.rang;
                     }
@@ -243,12 +249,14 @@ public class Scale {
             }
         }
         else if (method==2){
-            for (Map.Entry<String, Integer> item :sortedset3){
+            for (Map.Entry<String, Integer> item :sortedset2){
                 for (Assesment a: data.assesment_list){
+                    //находим нужную оценку
                     if (a.name.equals(item.getKey())){
+                        //если оценка не наилучшая (не одна из первых)
                         if (z>data.criteria_list.size()-2){
                             if (a.rang!=1) sign=" > ";
-
+                            //записываем только название оценки
                             unisc+=sign+" "+a.name+" ";
                         }
                         else unisc+=" "+a.name+" , ";
@@ -260,7 +268,7 @@ public class Scale {
         return unisc;
     }
     
-    //сортировка по рангу
+    //сортировка оценок по рангу
     public Comparator <Map.Entry<String, Integer>> orderCompRang = new Comparator<Map.Entry<String, Integer>>() {
                 @Override
                 public int compare(Map.Entry<String, Integer> e1, Map.Entry<String, Integer> e2) {
@@ -282,57 +290,53 @@ public class Scale {
                 }
     };
     
-    /*
-    public Comparator <Map.Entry<Double, Integer[]>> orderCompInt = new Comparator<Map.Entry<Double, Integer[]>>() {
-                @Override
-                public int compare(Map.Entry<Double, Integer[]> e1, Map.Entry<Double, Integer[]> e2) {
-                    int i=0;
-                    if (e1.getKey().compareTo(e2.getKey())==0) i=e1.getValue()[0].compareTo(e2.getValue()[0]);
-                    else i=e1.getKey().compareTo(e2.getKey());
-                    return i;
-                }
-    };*/
-    
     //сравнение альтернатив
     public void compareAlternatives(Data data){
-        SortedMap <Integer, ArrayList<Integer>> map = new TreeMap<Integer, ArrayList<Integer>>();
-        SortedSet<Map.Entry<Integer, ArrayList<Integer>>> sortedset = new TreeSet<Map.Entry<Integer, ArrayList<Integer>>>(orderAternative);
+        SortedMap <Integer, ArrayList<Integer>> map = new TreeMap<Integer, ArrayList<Integer>>();//список с id альтернативы и списком рангов
+        SortedSet<Map.Entry<Integer, ArrayList<Integer>>> sortedset = new TreeSet<Map.Entry<Integer, ArrayList<Integer>>>(orderAternative);//список с сортировкой альтернатив
         
         //создаем список всех альтернатив, заменяем оценки на их ранги
         for (Alternative a:data.alternative_list){
-            ArrayList<Integer> sum = new ArrayList<Integer>();
+            ArrayList<Integer> listRang = new ArrayList<Integer>();
             int i=1;
+            
             for (Integer v: a.criteria_assesments){
                 for (Assesment as: data.assesment_list){
-                    if (as.criteria_id==i && as.id==v) sum.add(as.rang);
+                    if (as.criteria_id==i && as.id==v) listRang.add(as.rang);
                 }
                 i++;
             }
-            map.put(a.id, sum);
+            map.put(a.id, listRang);
         }
+        //сортируем альтернативы
         sortedset.addAll(map.entrySet());
         
-        //проставляем ранги альтернативам
+        //проставляем ранги альтернативам в соответствии их положению в списке
         int i=1;
         for (Map.Entry<Integer, ArrayList<Integer>> item :sortedset){
             for (Alternative a: data.alternative_list){
                 if (a.id==item.getKey()) {
                     a.rang=i;
-                    a.criteria_rangs=item.getValue();
+                    a.assesment_rangs=item.getValue();
                     i++;
                 }
             }
         }
         
-        //если есть одинаковые альтернативы, проставляем им одинаковые ранги
+        
         SortedMap <Integer, ArrayList<Integer>> map2 = new TreeMap<Integer, ArrayList<Integer>>();
+        //если есть одинаковые альтернативы, проставляем им одинаковые ранги 
+        //SortedMap удаляет записи с одинаковым ключом, поэтому проверяем на размер, если  не совпадает, значит что то удалилось
         if (sortedset.size()!=map.size()){
+            //добавим все исходные записи (не отсортированные)
             for (Map.Entry<Integer, ArrayList<Integer>> item :map.entrySet()){
                 map2.put(item.getKey(), item.getValue());
             }
+            //удалим из него отсортированные, останутся удаленные записи
             for (Map.Entry<Integer, ArrayList<Integer>> item :sortedset){
                 map2.remove(item.getKey());
             }
+            //находим удаленные альтернативы и проставляем им ранг аналогичной альтернативы
             for (Map.Entry<Integer, ArrayList<Integer>> item :map2.entrySet()){
                 for (Alternative a: data.alternative_list){
                     if (a.id==item.getKey()) {
@@ -342,7 +346,7 @@ public class Scale {
                                 break;
                             }
                         }
-                        a.criteria_rangs=item.getValue();
+                        a.assesment_rangs=item.getValue();
                     }
                 }
             }
@@ -353,18 +357,19 @@ public class Scale {
     public Comparator <Map.Entry<Integer, ArrayList<Integer>>> orderAternative = new Comparator<Map.Entry<Integer, ArrayList<Integer>>>() {
                 @Override
                 public int compare(Map.Entry<Integer, ArrayList<Integer>> e1, Map.Entry<Integer, ArrayList<Integer>> e2) {
-                    if (e1.getValue().equals(e2.getValue())) {
+                    if (e1.getValue().equals(e2.getValue())) {//если ранги полностью идентичны
                         return 0;
                     }
                     int sum1=0, sum2=0;
-                    
+                    //посчитаем сумму рангов
                     for (Integer a:e1.getValue()){
                         sum1+=a;
                     }
                     for (Integer a:e2.getValue()){
                         sum2+=a;
                     }
-                    if (sum1!=sum2) return sum1-sum2;
+                    if (sum1!=sum2) return sum1-sum2;//если суммы отличаются
+                    //иначе ищем, где больше наилучщих рангов
                     else {
                         sum1=0; sum2=0;
                         for (int j=0; j<e1.getValue().size();j++){

@@ -9,8 +9,8 @@ public class Alternative {
     public String name;
     public int id;
     public ArrayList<Integer> criteria_assesments = new ArrayList<Integer>();//оценки исходные
-    public int rang;
-    public ArrayList<Integer> criteria_rangs = new ArrayList<Integer>();//ранги оценок
+    public int rang;//относительный ранг
+    public ArrayList<Integer> assesment_rangs = new ArrayList<Integer>();//ранги оценок
     
     public Alternative(){
         
@@ -29,7 +29,7 @@ public class Alternative {
     }
     
     public ArrayList<Integer> getCriteria_rangs(){
-        return this.criteria_rangs;
+        return this.assesment_rangs;
     }
     
     public int getRang(){
@@ -43,6 +43,7 @@ public class Alternative {
         this.rang=rang;
     }
     
+    //чтение исходных данных
     public ArrayList<Alternative> readFile(String filename){
         ArrayList<Alternative> list = new ArrayList();
         String encoding = System.getProperty("console.encoding", "utf-8");

@@ -1,13 +1,14 @@
 package zapros;
 import java.util.ArrayList;
 
+//класс с ответами
 public class Answer {
-    public PairCriteria pair;
-    public int as11;
-    public int as12;
-    public int as21;
-    public int as22;
-    public String decision;
+    public PairCriteria pair;//пара критериев
+    public int as11;//оценка 11 (id оценки)
+    public int as12;//оценка 12 (id оценки)
+    public int as21;//оценка 21 (id оценки)
+    public int as22;//оценка 22 (id оценки)
+    public String decision;//ответ ЛПР
     
     
     public String getDecision(){

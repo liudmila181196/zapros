@@ -15,7 +15,7 @@ public class Criteria {
         this.name = name;
         this.id=id;
     }
-    
+    //чтение исходных данных
     public ArrayList<Criteria> readFile(String filename){
         ArrayList<Criteria> list = new ArrayList();
         String encoding = System.getProperty("console.encoding", "utf-8");
