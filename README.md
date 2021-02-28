@@ -24,35 +24,35 @@
 
 Главное меню:
 
-![alt text](zapros\src\zapros\screenshot\main_menu.png "Главное меню")
+![alt text](zapros/src/zapros/screenshot/main_menu.png "Главное меню")
 
 Настройки:
 
-![alt text](zapros\src\zapros\screenshot\settings.png "")
+![alt text](zapros/src/zapros/screenshot/settings.png "")
 
 Вопрос к пользователю при выборе метода ЗАПРОС II:
 
-![alt text](zapros\src\zapros\screenshot\question2.png "")
+![alt text](zapros/src/zapros/screenshot/question2.png "")
 
 Вопрос к пользователю при выборе метода ЗАПРОС III:
 
-![alt text](zapros\src\zapros\screenshot\question2.png "")
+![alt text](zapros/src/zapros/screenshot/question2.png "")
 
 Ответы пользователя отображаются в таблице:
 
-![alt text](zapros\src\zapros\screenshot\answers.png "")
+![alt text](zapros/src/zapros/screenshot/answers.png "")
 
 Шкалы для ЗАПРОС II:
 
-![alt text](zapros\src\zapros\screenshot\scale2.png "")
+![alt text](apros/src/zapros/screenshot/scale2.png "")
 
 Шкалы для ЗАПРОС III:
 
-![alt text](zapros\src\zapros\screenshot\scale3.png "")
+![alt text](apros/src/zapros/screenshot/scale3.png "")
 
 Результат ранжирования альтернатив:
 
-![alt text](zapros\src\zapros\screenshot\alternative.png "")
+![alt text](apros/src/zapros/screenshot/alternative.png "")
 
 
 ## Исходные данные
