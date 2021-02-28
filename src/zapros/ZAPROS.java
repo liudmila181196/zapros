@@ -36,6 +36,9 @@ import java.io.InputStream;
 import javafx.scene.control.Alert;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
+import java.io.UnsupportedEncodingException;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class ZAPROS extends Application {
     GridPane AskView;
@@ -43,11 +46,16 @@ public class ZAPROS extends Application {
     VBox AnswerView;
     VBox ScaleView;
     VBox AlterView;
+    VBox root;
     Stage primaryStage;
     Scene sceneAnswerView;
     Scene sceneSettingsView;
     Scene sceneScaleView;
     Scene sceneAlterView;
+    Scene scene;
+    
+    Locale locale = new Locale("ru", "RU");
+    ResourceBundle rb = ResourceBundle.getBundle("zapros.resources.text", locale);
     
     Ask ask = new Ask();
     Answer answer= new Answer();
@@ -57,14 +65,18 @@ public class ZAPROS extends Application {
     RadioButton selectionZapros;
     Data zapros;
     String path = "src/zapros/data_1/";
+    Label mainlabel;
     
+    Button btnStart;
     Button btnAnswerView;
     Button btnScaleView;
     Button btnAlterView;
-    Button btnOk = new Button("В главное меню", getImageView("home-page"));
+    Button btnOk = new Button(rb.getString("homapagebtn"), getImageView("home-page"));
     Button btnReturnToAnswerView;
     Button btnReturnToScaleView;
     Button btnSettings;
+    Button btnRandomAnswer;
+    
     static final int WIDTH = 1400;//ширина окна
     static final int HEIGHT = 700;//высота окна
     
@@ -73,12 +85,15 @@ public class ZAPROS extends Application {
     
     public static String styleHead = "-fx-font-size: 2em; ";
     
+    
     @Override
     public void start(Stage primaryStage) {
         selectionZapros = new RadioButton();
         selectionZapros.setId("2");
         
-        Button btnStart = new Button("Старт", getImageView("start"));
+        
+        
+        btnStart = new Button(rb.getString("startbtn"), getImageView("start"));
         btnStart.setOnAction(new EventHandler<ActionEvent>() {
             
             @Override
@@ -96,7 +111,7 @@ public class ZAPROS extends Application {
             }
         });
         
-        btnSettings = new Button("Настройки", getImageView("settings"));
+        btnSettings = new Button(rb.getString("settings.mainlabel"), getImageView("settings"));
         btnSettings.setOnAction(new EventHandler<ActionEvent>() {
             
             @Override
@@ -109,7 +124,7 @@ public class ZAPROS extends Application {
             }
         });
         
-        btnAnswerView = new Button("Посмотреть ответы", getImageView("next"));
+        btnAnswerView = new Button(rb.getString("showanswersbtn"), getImageView("next"));
         btnAnswerView.setOnAction(new EventHandler<ActionEvent>() {
             
             @Override
@@ -122,7 +137,7 @@ public class ZAPROS extends Application {
             }
         });
         
-        btnScaleView = new Button("Построить шкалы", getImageView("next"));
+        btnScaleView = new Button(rb.getString("scaleviewbtn"), getImageView("next"));
         btnScaleView.setOnAction(new EventHandler<ActionEvent>() {
             
             @Override
@@ -136,7 +151,7 @@ public class ZAPROS extends Application {
             }
         });
         
-        btnAlterView = new Button("Ранжировать альтернативы", getImageView("next"));
+        btnAlterView = new Button(rb.getString("alterviewbtn"), getImageView("next"));
         btnAlterView.setOnAction(new EventHandler<ActionEvent>() {
             
             @Override
@@ -151,7 +166,7 @@ public class ZAPROS extends Application {
         });
         
         
-        btnReturnToAnswerView = new Button("Вернуться к ответам", getImageView("back"));
+        btnReturnToAnswerView = new Button(rb.getString("ReturnToAnswerViewbtn"), getImageView("back"));
         
         btnReturnToAnswerView.setOnAction(new EventHandler<ActionEvent>() {
             
@@ -163,7 +178,7 @@ public class ZAPROS extends Application {
             }
         });
         
-        btnReturnToScaleView = new Button("Вернуться к шкалам", getImageView("back"));
+        btnReturnToScaleView = new Button(rb.getString("ReturnToScaleViewbtn"), getImageView("back"));
         
         btnReturnToScaleView.setOnAction(new EventHandler<ActionEvent>() {
             
@@ -175,9 +190,9 @@ public class ZAPROS extends Application {
             }
         });
         
-        Button btnRandomAsk = new Button("Случайные ответы", getImageView("shuffle"));
+        btnRandomAnswer = new Button(rb.getString("btnRandomAnswer"), getImageView("shuffle"));
         
-        btnRandomAsk.setOnAction(new EventHandler<ActionEvent>() {
+        btnRandomAnswer.setOnAction(new EventHandler<ActionEvent>() {
             
             @Override
             public void handle(ActionEvent event) {
@@ -193,15 +208,15 @@ public class ZAPROS extends Application {
             }
         });
         
-        Label label = new Label("ЗАПРОС II, III");
-        label.setStyle(styleHead);
+        mainlabel = new Label(rb.getString("mainmenu"));
+        mainlabel.setStyle(styleHead);
         
-        VBox root = new VBox();
+        root = new VBox();
         root.setSpacing(10);
         root.setAlignment(Pos.CENTER);
-        root.getChildren().addAll(label, btnStart, btnSettings, btnRandomAsk);
+        root.getChildren().addAll(mainlabel, btnStart, btnSettings, btnRandomAnswer);
         
-        Scene scene = new Scene(root, WIDTH, HEIGHT);
+        scene = new Scene(root, WIDTH, HEIGHT);
         
         primaryStage.setTitle("ZAPROS");
         primaryStage.setScene(scene);
@@ -211,6 +226,8 @@ public class ZAPROS extends Application {
             
             @Override
             public void handle(ActionEvent event) {
+                
+                updateMainView();
                 primaryStage.setScene(scene);
                 primaryStage.show();
             }
@@ -218,7 +235,12 @@ public class ZAPROS extends Application {
         
     }
     
-    
+    public void updateMainView(){
+        mainlabel.setText(rb.getString("mainmenu"));
+        btnStart.setText(rb.getString("startbtn"));
+        btnSettings.setText(rb.getString("settings.mainlabel"));
+        btnRandomAnswer.setText(rb.getString("btnRandomAnswer"));
+    }
     
     //сцена с альтернативами
     public void createAlterView(){
@@ -233,8 +255,8 @@ public class ZAPROS extends Application {
         
         // столбцы вывода оценок
         TableColumn<Alternative, Integer> idColumn = new TableColumn<Alternative, Integer>("Id");
-        TableColumn<Alternative, String> nameColumn = new TableColumn<Alternative, String>("Название");
-        TableColumn<Alternative, ArrayList<Integer>> asColumn = new TableColumn<Alternative, ArrayList<Integer>>("Оценки");
+        TableColumn<Alternative, String> nameColumn = new TableColumn<Alternative, String>(rb.getString("nameColumn"));
+        TableColumn<Alternative, ArrayList<Integer>> asColumn = new TableColumn<Alternative, ArrayList<Integer>>(rb.getString("assesmentsColumn"));
         
         // определяем фабрику для столбцов
         idColumn.setCellValueFactory(new PropertyValueFactory<Alternative, Integer>("id"));
@@ -246,20 +268,20 @@ public class ZAPROS extends Application {
         table.getColumns().add(asColumn);
         
         if (Integer.parseInt(selectionZapros.getId())==3){
-            TableColumn<Alternative, ArrayList<Integer>> asrangColumn = new TableColumn<Alternative, ArrayList<Integer>>("Ранги оценок");
+            TableColumn<Alternative, ArrayList<Integer>> asrangColumn = new TableColumn<Alternative, ArrayList<Integer>>(rb.getString("ranksColumn"));
             asrangColumn.setCellValueFactory(new PropertyValueFactory<Alternative, ArrayList<Integer>>("criteria_rangs"));
             table.getColumns().add(asrangColumn);
         }
-        TableColumn<Alternative, Integer> rangColumn = new TableColumn<Alternative, Integer>("Относительный ранг");
+        TableColumn<Alternative, Integer> rangColumn = new TableColumn<Alternative, Integer>(rb.getString("relativerank"));
         rangColumn.setCellValueFactory(new PropertyValueFactory<Alternative, Integer>("rang"));
         table.getColumns().add(rangColumn);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         //заголовок
-        Label label = new Label("Список альтернатив");
+        Label label = new Label(rb.getString("alterview.alterlist"));
         label.setStyle(styleHead);
-        Button btnSave = new Button("Сохранить результат", getImageView("upload"));
+        Button btnSave = new Button(rb.getString("btnSave"), getImageView("upload"));
         
-        Label timeLabel = new Label("Время выполнения: "+String.format("%.6f",timed)+" мс");
+        Label timeLabel = new Label(rb.getString("timelabel")+" "+String.format("%.6f",timed)+" "+rb.getString("timemeasure"));
         
         AlterView.getChildren().addAll(label,table, timeLabel, btnSave, btnReturnToScaleView, btnOk);
         AlterView.setPadding(new Insets(50));
@@ -289,11 +311,11 @@ public class ZAPROS extends Application {
     
     //сцена настроек
     public void createSettingsView(){
-        Label label = new Label("Настройки");
+        Label label = new Label(rb.getString("settings.mainlabel"));
         label.setStyle(styleHead);
-        Label l = new Label("Выберите метод:");
-        RadioButton zapros2 = new RadioButton("ЗАПРОС II");
-        RadioButton zapros3 = new RadioButton("ЗАПРОС III");
+        Label l = new Label(rb.getString("settings.methodlabel"));
+        RadioButton zapros2 = new RadioButton(rb.getString("settings.zapros2"));
+        RadioButton zapros3 = new RadioButton(rb.getString("settings.zapros3"));
         zapros2.setId("2");
         zapros3.setId("3");
         zapros2.setSelected(true);
@@ -301,7 +323,7 @@ public class ZAPROS extends Application {
         zapros2.setToggleGroup(group);
         zapros3.setToggleGroup(group);
         
-        Button btnSetZapros = new Button("Изменить", getImageView("ok"));
+        Button btnSetZapros = new Button(rb.getString("settings.SetZaprosbtn"), getImageView("ok"));
         btnSetZapros.setOnAction(new EventHandler<ActionEvent>() {
             
             @Override
@@ -313,8 +335,8 @@ public class ZAPROS extends Application {
         final DirectoryChooser directoryChooser = new DirectoryChooser();
         configuringDirectoryChooser(directoryChooser);
         
-        Label lDir = new Label("Загрузить исходные данные:");
-        Button btnChooseDir = new Button("Загрузить", getImageView("download"));
+        Label lDir = new Label(rb.getString("settings.download"));
+        Button btnChooseDir = new Button(rb.getString("settings.downloadbtn"), getImageView("download"));
  
         btnChooseDir.setOnAction(new EventHandler<ActionEvent>() {
  
@@ -327,10 +349,45 @@ public class ZAPROS extends Application {
             }
         });
         
-        SettingsView.getChildren().addAll(label, l, zapros2, zapros3, btnSetZapros, lDir,  btnChooseDir, btnOk);
+        Label llanguage = new Label(rb.getString("settings.locale"));
+        Button btnLocale =new Button(rb.getString("settings.localebtn"));
+        
+        
+        btnLocale.setOnAction(new EventHandler<ActionEvent>() {
+            
+            @Override
+            public void handle(ActionEvent event) {
+                if (locale.getCountry().equals("RU")) {
+                    locale = new Locale("en", "US");
+                    btnLocale.setText("English");
+                    rb = ResourceBundle.getBundle("zapros.resources.text", locale);
+                    updateButtonsText();
+                }
+                else {
+                    locale = new Locale("ru", "RU");
+                    btnLocale.setText("Русский");
+                    rb = ResourceBundle.getBundle("zapros.resources.text", locale);
+                    updateButtonsText();
+                }
+            }
+        });
+        
+        SettingsView.getChildren().addAll(label, l, zapros2, zapros3, btnSetZapros, lDir,  btnChooseDir, llanguage, btnLocale, btnOk);
         SettingsView.setPadding(new Insets(50));
         SettingsView.setSpacing(10);
         SettingsView.setAlignment(Pos.CENTER);
+    }
+    
+    public void updateButtonsText(){
+        btnStart.setText(rb.getString("startbtn"));
+        btnAnswerView.setText(rb.getString("showanswersbtn"));
+        btnScaleView.setText(rb.getString("scaleviewbtn"));
+        btnAlterView.setText(rb.getString("alterviewbtn"));
+        btnOk.setText(rb.getString("homapagebtn"));
+        btnReturnToAnswerView.setText(rb.getString("ReturnToAnswerViewbtn"));
+        btnReturnToScaleView.setText(rb.getString("ReturnToScaleViewbtn"));
+        btnSettings.setText(rb.getString("settings.mainlabel"));
+        btnRandomAnswer.setText(rb.getString("btnRandomAnswer"));
     }
     
     final Random random = new Random();
@@ -383,7 +440,7 @@ public class ZAPROS extends Application {
         
         int i=0;
         for (LinkedHashMap<String, Integer[]> sc: scales){
-            String s = "Шкала для критериев ";
+            String s = rb.getString("scaleForCriterias")+" ";
             s+=zapros.criteria_list.get(zapros.pair_list.get(i).crit1-1).name + " и " +zapros.criteria_list.get(zapros.pair_list.get(i).crit2-1).name+" : ";
             stringScales.add(s);
             s="";
@@ -411,12 +468,12 @@ public class ZAPROS extends Application {
             stringScales.add(s);
         }
         
-        String s = "Единая Порядковая Шкала: ";
+        String s = rb.getString("unifiedOrdinalScale")+" ";
         
         stringScales.add(s);
         stringScales.add(uniscale);
         if (Integer.parseInt(selectionZapros.getId())==3){
-            stringScales.add("Ранги оценок: ");
+            stringScales.add(rb.getString("ranksColumn")+": ");
             for (Assesment a: zapros.assesment_list){
                 stringScales.add("R("+zapros.criteria_list.get(a.criteria_id-1).name+
                                 ", "+1+"-"+a.id+") => "+a.rang);
@@ -426,12 +483,12 @@ public class ZAPROS extends Application {
         ObservableList<String> langs = FXCollections.observableArrayList(stringScales);
         ListView<String> langsListView = new ListView<String>(langs);
         
-        Label labelScale = new Label("Шкалы");
+        Label labelScale = new Label(rb.getString("scales"));
         labelScale.setStyle(styleHead);
         
-        Button btnSave = new Button("Сохранить результат", getImageView("upload"));
+        Button btnSave = new Button(rb.getString("btnSave"), getImageView("upload"));
         
-        Label timeLabel = new Label("Время выполнения: "+String.format("%.6f",timed)+" мс");
+        Label timeLabel = new Label(rb.getString("timelabel")+" "+String.format("%.6f",timed)+" "+rb.getString("timemeasure"));
         
         ScaleView.getChildren().addAll(labelScale,langsListView, timeLabel, btnAlterView, btnSave, btnReturnToAnswerView);
         ScaleView.setPadding(new Insets(50));
@@ -469,13 +526,13 @@ public class ZAPROS extends Application {
         table.setPrefWidth(500);
         table.setPrefHeight(500);
         // столбцы вывода оценок
-        TableColumn<Answer, Integer> crit1Column = new TableColumn<Answer, Integer>("Критерий 1");
-        TableColumn<Answer, Integer> crit2Column = new TableColumn<Answer, Integer>("Критерий 2");
-        TableColumn<Answer, Integer> as11Column = new TableColumn<Answer, Integer>("Оценка 11");
-        TableColumn<Answer, Integer> as12Column = new TableColumn<Answer, Integer>("Оценка 12");
-        TableColumn<Answer, Integer> as21Column = new TableColumn<Answer, Integer>("Оценка 21");
-        TableColumn<Answer, Integer> as22Column = new TableColumn<Answer, Integer>("Оценка 22");
-        TableColumn<Answer, String> answerColumn = new TableColumn<Answer, String>("Ответ");
+        TableColumn<Answer, Integer> crit1Column = new TableColumn<Answer, Integer>(rb.getString("criteria")+" 1");
+        TableColumn<Answer, Integer> crit2Column = new TableColumn<Answer, Integer>(rb.getString("criteria")+" 2");
+        TableColumn<Answer, Integer> as11Column = new TableColumn<Answer, Integer>(rb.getString("assesment")+" 11");
+        TableColumn<Answer, Integer> as12Column = new TableColumn<Answer, Integer>(rb.getString("assesment")+" 12");
+        TableColumn<Answer, Integer> as21Column = new TableColumn<Answer, Integer>(rb.getString("assesment")+" 21");
+        TableColumn<Answer, Integer> as22Column = new TableColumn<Answer, Integer>(rb.getString("assesment")+" 22");
+        TableColumn<Answer, String> answerColumn = new TableColumn<Answer, String>(rb.getString("answer"));
 
         // определяем фабрику для столбцов
         crit1Column.setCellValueFactory(new PropertyValueFactory<Answer, Integer>("crit1"));
@@ -494,9 +551,9 @@ public class ZAPROS extends Application {
         table.getColumns().add(answerColumn);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         //заголовок
-        Label label = new Label("Список ответов");
+        Label label = new Label(rb.getString("answerlist"));
         label.setStyle(styleHead);
-        Button btnSave = new Button("Сохранить результат", getImageView("upload"));
+        Button btnSave = new Button(rb.getString("btnSave"), getImageView("upload"));
         
         AnswerView.getChildren().addAll(label,table, btnScaleView, btnSave);
         AnswerView.setPadding(new Insets(50));
@@ -530,7 +587,7 @@ public class ZAPROS extends Application {
     //сцена с вопросами к ЛПР
     public void ask(){
         num=1;
-        Button decisionBtn= new Button("Ответить", getImageView("ok"));
+        Button decisionBtn= new Button(rb.getString("answerthequestion"), getImageView("ok"));
         countOfPairs = zapros.pair_list.size();
         int numOfQuestions = zapros.assesment_list.size();
         
@@ -596,7 +653,7 @@ public class ZAPROS extends Application {
         
         RadioButton ans1 = new RadioButton(question1);
         RadioButton ans2 = new RadioButton(question2);
-        RadioButton ans3 = new RadioButton("Без разницы");
+        RadioButton ans3 = new RadioButton(rb.getString("notmatter"));
         ans1.setSelected(true);
         ans1.setId("first");
         ans2.setId("second");
