@@ -408,7 +408,7 @@ public class ZAPROS extends Application {
                 answer.decision= answers.get(random.nextInt(2));//в ЗАПРОС 2
             else answer.decision= answers.get(random.nextInt(3));
             zapros.answer_list.add(answer);
-            if (ask.session<3) {
+            if (ask.session<ask.maxSize) {
                 answer = ask.nextAnswer();
             }
             else {
@@ -441,12 +441,13 @@ public class ZAPROS extends Application {
         int i=0;
         for (LinkedHashMap<String, Integer[]> sc: scales){
             String s = rb.getString("scaleForCriterias")+" ";
-            s+=zapros.criteria_list.get(zapros.pair_list.get(i).crit1-1).name + " и " +zapros.criteria_list.get(zapros.pair_list.get(i).crit2-1).name+" : ";
+            s+=zapros.criteria_list.get(scale.listOfCriterias.get(i)[0]-1).name + " и " +zapros.criteria_list.get(scale.listOfCriterias.get(i)[1]-1).name+" : ";
             stringScales.add(s);
             s="";
             int j=0;
             if (Integer.parseInt(selectionZapros.getId())==2){
                 for (Map.Entry<String, Integer[]> str:sc.entrySet()){
+                    
                     if (j>0) s+=str.getKey()+" -> ";
                     else s+=str.getKey()+" , ";
                     j++;
@@ -583,13 +584,23 @@ public class ZAPROS extends Application {
        
     }
     
+    public int calculateNumOfQuestions(){
+        int n=0;
+        for (PairCriteria p:zapros.pair_list){
+            int numOfAssesments1=zapros.criteria_list.get(p.crit1-1).numOfAssesments;
+            int numOfAssesments2=zapros.criteria_list.get(p.crit2-1).numOfAssesments;
+            n+=numOfAssesments1>numOfAssesments2?numOfAssesments1:numOfAssesments2;
+        }
+        return n;
+    }
+    
     int num=1;
     //сцена с вопросами к ЛПР
     public void ask(){
         num=1;
         Button decisionBtn= new Button(rb.getString("answerthequestion"), getImageView("ok"));
         countOfPairs = zapros.pair_list.size();
-        int numOfQuestions = zapros.assesment_list.size();
+        int numOfQuestions = calculateNumOfQuestions();
         
         
         ask = new Ask(zapros.pair_list.get(zapros.pair_list.size()-countOfPairs), zapros.assesment_list);
@@ -605,7 +616,7 @@ public class ZAPROS extends Application {
                 answer.decision= selectionAnswer.getId();
                 zapros.answer_list.add(answer);
                 //System.out.println("Answer: "+answer.decision+", session: "+ask.session);
-                if (ask.session<3) {
+                if (ask.session<ask.maxSize) {
                     answer = ask.nextAnswer();
                     group = updateAskField(ask, answer, numOfQuestions, num);
                     selectionAnswer = (RadioButton) group.getSelectedToggle();

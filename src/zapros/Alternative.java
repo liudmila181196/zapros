@@ -56,9 +56,9 @@ public class Alternative {
             while((s=sc.nextLine())!=null){
                 String[] words = s.split(";");
                 ArrayList<Integer> int_list = new ArrayList();
-                int_list.add(Integer.parseInt(words[2]));
-                int_list.add(Integer.parseInt(words[3]));
-                int_list.add(Integer.parseInt(words[4]));
+                for (int i=2; i<words.length;i++){
+                    int_list.add(Integer.parseInt(words[i]));
+                }
                 String name = words[1];
                 list.add(new Alternative(Integer.parseInt(words[0]), 
                         name, 

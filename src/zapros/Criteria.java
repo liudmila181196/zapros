@@ -8,12 +8,14 @@ import java.util.Scanner;
 public class Criteria {
     public String name;
     public int id;
+    public int numOfAssesments;
     
     public Criteria(){}
     
-    public Criteria(int id, String name){
+    public Criteria(int id, String name, int numOfAssesments){
         this.name = name;
         this.id=id;
+        this.numOfAssesments=numOfAssesments;
     }
     //чтение исходных данных
     public ArrayList<Criteria> readFile(String filename){
@@ -28,7 +30,7 @@ public class Criteria {
             while((s=sc.nextLine())!=null){
                 String[] words = s.split(";");
                 list.add(new Criteria(Integer.parseInt(words[0]), 
-                        words[1]));
+                        words[1], Integer.parseInt(words[2])));
             }
             sc.close();
         }

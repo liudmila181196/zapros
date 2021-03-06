@@ -7,6 +7,7 @@ import java.util.*;
 public class Scale {
     ArrayList<ArrayList<String>> epsh_sign;//лист знаков сравнения (>, =) для каждой шкалы
     ArrayList<LinkedHashMap<String, Integer[]>> epsh;//шкалы пар критериев, строка - имя оценки, массив хранит id критерия и оценки
+    ArrayList<Integer[]> listOfCriterias;
     
     //строим для каждой пары критериев шкалу на основе ответов ЛПР
     public ArrayList<LinkedHashMap<String, Integer[]>> buildScale(Data zapros){
@@ -14,12 +15,13 @@ public class Scale {
         
         epsh = new ArrayList<LinkedHashMap<String, Integer[]>>();
         epsh_sign = new ArrayList<ArrayList<String>>();
-        
+        listOfCriterias=new ArrayList<>();
         //для каждой пары критериев строим шкалу, их должно быть столько же, сколько пар критериев
         while (epsh.size()<zapros.pair_list.size()){
             
             int crit1_id = zapros.answer_list.get(id).pair.crit1;
             int crit2_id = zapros.answer_list.get(id).pair.crit2;
+            Integer[] criterias=new Integer[]{crit1_id, crit2_id};
             
             ArrayList<Assesment> assesments1=new ArrayList();
             ArrayList<Assesment> assesments2=new ArrayList();
@@ -34,7 +36,7 @@ public class Scale {
                 }
             }
             
-            int len_assesment=assesments1.size();
+            int len_assesment=assesments1.size()>assesments2.size()?assesments1.size():assesments2.size();
             
             LinkedHashMap<String, Integer[]> scale = new LinkedHashMap<String, Integer[]>();
             ArrayList<String> scale_sign = new ArrayList<String>();
@@ -53,16 +55,16 @@ public class Scale {
                 //если выбран первый вариант ответа
                 if (change[0]==1) {
                     //если в шкале еще нет выбранной оценки, добавляем в шкалу
-                    if (!scale.containsKey(assesments1.get(change[1]-1).name)) {
-                        scale.put(assesments1.get(change[1]-1).name, new Integer[]{crit1_id,assesments1.get(change[1]-1).id});
+                    if (!scale.containsKey(assesments2.get(change[1]-1).name)) {
+                        scale.put(assesments2.get(change[1]-1).name, new Integer[]{crit1_id,assesments2.get(change[1]-1).id});
                     }
                     scale_sign.add(" > ");
                 }
-                //если выбран первый вариант ответа
+                //если выбран второй вариант ответа
                 else if (change[0]==2){
                     //если в шкале еще нет выбранной оценки, добавляем в шкалу
-                    if (!scale.containsKey(assesments2.get(change[1]-1).name)) {
-                        scale.put(assesments2.get(change[1]-1).name, new Integer[]{crit2_id,assesments2.get(change[1]-1).id});
+                    if (!scale.containsKey(assesments1.get(change[1]-1).name)) {
+                        scale.put(assesments1.get(change[1]-1).name, new Integer[]{crit2_id,assesments1.get(change[1]-1).id});
                     }
                     scale_sign.add(" > ");
                 }
@@ -70,14 +72,14 @@ public class Scale {
                 else if (change[0]==3){
                     scale_sign.add(" = ");
                     //добавляем друг другу в списки равных оценок
-                    assesments1.get(change[1]-1).equals.add(assesments2.get(change[1]-1));
-                    assesments2.get(change[1]-1).equals.add(assesments1.get(change[1]-1));
+                    assesments1.get(change[1]-1).equals.add(assesments2.get(change[2]-1));
+                    assesments2.get(change[2]-1).equals.add(assesments1.get(change[1]-1));
                     //если оценок еще нет в шкале, добавляем
                     if (!scale.containsKey(assesments1.get(change[1]-1).name)) {
                         scale.put(assesments1.get(change[1]-1).name, new Integer[]{crit1_id,assesments1.get(change[1]-1).id});
                     }
-                    if (!scale.containsKey(assesments2.get(change[1]-1).name)) {
-                        scale.put(assesments2.get(change[1]-1).name, new Integer[]{crit2_id,assesments2.get(change[1]-1).id});
+                    if (!scale.containsKey(assesments2.get(change[2]-1).name)) {
+                        scale.put(assesments2.get(change[2]-1).name, new Integer[]{crit2_id,assesments2.get(change[2]-1).id});
                     }
                 }
                 id++;
@@ -95,8 +97,10 @@ public class Scale {
                     scale_sign.add(">");
                 }
             }
+            
             epsh.add(scale);
             epsh_sign.add(scale_sign);
+            listOfCriterias.add(criterias);
         }
         return epsh;
     }
@@ -111,7 +115,7 @@ public class Scale {
     
     //возвращаем решение и оценку, отличающуюся от начальной(наилучшей)
     public int[] get_change_req(Answer answer, Data zapros){
-        int[] change = {0,0};
+        int[] change = {0,0,0};
         int a_ass_start = start_id_ass_by_crit(answer.pair.crit1, zapros);//наилучшая оценка критерия 1
         int b_ass_start = start_id_ass_by_crit(answer.pair.crit2, zapros);//наилучшая оценка критерия 2
         //если выбран первый вариант ответа
@@ -125,25 +129,16 @@ public class Scale {
         }
         else if (answer.decision == "not matter"){
             change[0]=3;
-            change[1] = answer.as21>b_ass_start?answer.as21:answer.as22;
+            change[1] = answer.as11>a_ass_start?answer.as11:answer.as12;
+            change[2] = answer.as21>b_ass_start?answer.as21:answer.as22;
         }
         return change;
     }
     
     //строим единую шкалу
     public String buildUnifiedScale(ArrayList<LinkedHashMap<String, Integer[]>> scale, int method, Data data){
-        ArrayList<String> uniScale = new ArrayList<>();
         String unisc="";
-        int n = scale.get(0).size();
-        double[] as = new double[n];
-        double j=1;
-        as[n-1]=n;
         
-        //"баллы" за место оценки в шкале, разница между ними тем больше, чем дальше стоит оценка в шкале
-        for (int i=n-2;i>=0;i--){
-            as[i] = as[i+1]-j;
-            j=j+0.5;
-        }
         
         SortedMap <String, Double> map = new TreeMap<String, Double>();//список названий оценок и их баллов
         SortedSet<Map.Entry<String, Double>> sortedset = new TreeSet<Map.Entry<String, Double>>(orderComp);//список сортируется по баллам
@@ -153,6 +148,16 @@ public class Scale {
         if (method==2){
             for (HashMap<String, Integer[]> l:scale){
                 int i=0;
+                int n = l.size();
+                double[] as = new double[n];
+                double j=1;
+                as[n-1]=n;
+
+                //"баллы" за место оценки в шкале, разница между ними тем больше, чем дальше стоит оценка в шкале
+                for (int z=n-2;z>=0;z--){
+                    as[z] = as[z+1]-j;
+                    j=j+0.5;
+                }
                 for (Map.Entry<String, Integer[]> str :l.entrySet()){
                     //если в мэпе еще нет такой оценки, добавляем с баллами за текущее положение в шкале
                     if (!map.containsKey(str.getKey())) {
@@ -170,6 +175,16 @@ public class Scale {
         else if (method==3){
             for (HashMap<String, Integer[]> l:scale){
                 int i=0;
+                int n = l.size();
+                double[] as = new double[n];
+                double j=1;
+                as[n-1]=n;
+
+                //"баллы" за место оценки в шкале, разница между ними тем больше, чем дальше стоит оценка в шкале
+                for (int z=n-2;z>=0;z--){
+                    as[z] = as[z+1]-j;
+                    j=j+0.5;
+                }
                 for (Map.Entry<String, Integer[]> str :l.entrySet()){
                     if (!map.containsKey(str.getKey())) {
                         map.put(str.getKey(), as[i]);
