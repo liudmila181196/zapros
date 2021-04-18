@@ -47,6 +47,7 @@ public class Alternative {
     public ArrayList<Alternative> readFile(String filename){
         ArrayList<Alternative> list = new ArrayList();
         String encoding = System.getProperty("console.encoding", "utf-8");
+        System.out.println("Reading alternative.txt");
         try
         {
             InputStream ist= new FileInputStream(filename+"/alternative.txt");

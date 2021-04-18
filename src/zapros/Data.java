@@ -41,6 +41,7 @@ public class Data {
     public String readFile(String filename){
         String str = "";
         String encoding = System.getProperty("console.encoding", "utf-8");
+        System.out.println("Reading question.txt");
         try
         {
             InputStream ist= new FileInputStream(filename+"/question.txt");

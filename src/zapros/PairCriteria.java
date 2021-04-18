@@ -21,6 +21,7 @@ public class PairCriteria {
     public ArrayList<PairCriteria> readFile(String filename){
         ArrayList<PairCriteria> list = new ArrayList();
         String encoding = System.getProperty("console.encoding", "utf-8");
+        System.out.println("Reading pair.txt");
         try
         {
             InputStream ist= new FileInputStream(filename+"/paircriteria.txt");

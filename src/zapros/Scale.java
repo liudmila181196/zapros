@@ -8,6 +8,7 @@ public class Scale {
     ArrayList<ArrayList<String>> epsh_sign;//лист знаков сравнения (>, =) для каждой шкалы
     ArrayList<LinkedHashMap<String, Integer[]>> epsh;//шкалы пар критериев, строка - имя оценки, массив хранит id критерия и оценки
     ArrayList<Integer[]> listOfCriterias;
+    int incomparable=0;
     
     //строим для каждой пары критериев шкалу на основе ответов ЛПР
     public ArrayList<LinkedHashMap<String, Integer[]>> buildScale(Data zapros){
@@ -307,6 +308,7 @@ public class Scale {
     
     //сравнение альтернатив
     public void compareAlternatives(Data data){
+        incomparable=0;
         SortedMap <Integer, ArrayList<Integer>> map = new TreeMap<Integer, ArrayList<Integer>>();//список с id альтернативы и списком рангов
         SortedSet<Map.Entry<Integer, ArrayList<Integer>>> sortedset = new TreeSet<Map.Entry<Integer, ArrayList<Integer>>>(orderAternative);//список с сортировкой альтернатив
         
@@ -323,6 +325,7 @@ public class Scale {
             }
             map.put(a.id, listRang);
         }
+        
         //сортируем альтернативы
         sortedset.addAll(map.entrySet());
         
@@ -339,8 +342,9 @@ public class Scale {
         }
         
         
+        
         SortedMap <Integer, ArrayList<Integer>> map2 = new TreeMap<Integer, ArrayList<Integer>>();
-        //если есть одинаковые альтернативы, проставляем им одинаковые ранги 
+        //если есть одинаковые или несравнимые альтернативы, проставляем им одинаковые ранги 
         //SortedMap удаляет записи с одинаковым ключом, поэтому проверяем на размер, если  не совпадает, значит что то удалилось
         if (sortedset.size()!=map.size()){
             //добавим все исходные записи (не отсортированные)
@@ -355,10 +359,24 @@ public class Scale {
             for (Map.Entry<Integer, ArrayList<Integer>> item :map2.entrySet()){
                 for (Alternative a: data.alternative_list){
                     if (a.id==item.getKey()) {
+                        int sum1=0;
+                        for (int j=0; j<item.getValue().size();j++){
+                           sum1+=item.getValue().get(j);
+                        }
                         for (Alternative b: data.alternative_list){
-                            if(a.criteria_assesments.equals(b.criteria_assesments) && b.rang!=0) {
+                            if (a.criteria_assesments.equals(b.criteria_assesments) && b.rang!=0) {
                                 a.rang=b.rang;
                                 break;
+                            }
+                            else {
+                                int sum2=0;
+                                for (int j=0; j<b.assesment_rangs.size();j++){
+                                    sum2+=b.assesment_rangs.get(j);
+                                }
+                                if (sum1==sum2 && b.rang!=0) {
+                                    a.rang=b.rang;
+                                    break;
+                                }
                             }
                         }
                         a.assesment_rangs=item.getValue();
@@ -368,6 +386,7 @@ public class Scale {
         }
     }
     
+
     //сравнение альтернатив по рангам оценок
     public Comparator <Map.Entry<Integer, ArrayList<Integer>>> orderAternative = new Comparator<Map.Entry<Integer, ArrayList<Integer>>>() {
                 @Override
@@ -380,19 +399,26 @@ public class Scale {
                     for (Integer a:e1.getValue()){
                         sum1+=a;
                     }
+                    
                     for (Integer a:e2.getValue()){
                         sum2+=a;
                     }
+                    int g=0;
                     if (sum1!=sum2) return sum1-sum2;//если суммы отличаются
-                    //иначе ищем, где больше наилучщих рангов
+                    //иначе ищем, где больше наилучших рангов
                     else {
+                        
                         sum1=0; sum2=0;
                         for (int j=0; j<e1.getValue().size();j++){
                             if (e1.getValue().get(j)<e2.getValue().get(j)) sum1++;
-                            else sum2++;
+                            else if (e1.getValue().get(j)>e2.getValue().get(j))sum2++;
                         }
                         if (sum1!=sum2) return sum2-sum1;
-                        else return 0;
+                        else {
+                            incomparable++;
+                            return 0;
+                        }
+                            
                     }
                 }
     };

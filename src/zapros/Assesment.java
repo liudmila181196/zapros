@@ -24,6 +24,7 @@ public class Assesment {
     public ArrayList<Assesment> readFile(String filename){
         ArrayList<Assesment> list = new ArrayList();
         String encoding = System.getProperty("console.encoding", "utf-8");
+        System.out.println("Reading assesment.txt");
         try
         {
             InputStream ist= new FileInputStream(filename+"/assesment.txt");

@@ -21,6 +21,7 @@ public class Criteria {
     public ArrayList<Criteria> readFile(String filename){
         ArrayList<Criteria> list = new ArrayList();
         String encoding = System.getProperty("console.encoding", "utf-8");
+        System.out.println("Reading criteria.txt");
         try
         {
             InputStream ist= new FileInputStream(filename+"/criteria.txt");

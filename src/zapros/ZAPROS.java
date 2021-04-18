@@ -246,6 +246,7 @@ public class ZAPROS extends Application {
     public void createAlterView(){
         Scale scale = new Scale();
         scale.compareAlternatives(zapros);
+        String uncomp=rb.getString("uncomparable")+": "+scale.incomparable;
         time2 = (System.nanoTime() - time2);
         double timed = (double) time2/1000000.0;
         ObservableList<Alternative> data = FXCollections.observableArrayList(zapros.alternative_list); 
@@ -282,8 +283,9 @@ public class ZAPROS extends Application {
         Button btnSave = new Button(rb.getString("btnSave"), getImageView("upload"));
         
         Label timeLabel = new Label(rb.getString("timelabel")+" "+String.format("%.6f",timed)+" "+rb.getString("timemeasure"));
+        Label uncompLabel = new Label(uncomp);
         
-        AlterView.getChildren().addAll(label,table, timeLabel, btnSave, btnReturnToScaleView, btnOk);
+        AlterView.getChildren().addAll(label,table, timeLabel, uncompLabel, btnSave, btnReturnToScaleView, btnOk);
         AlterView.setPadding(new Insets(50));
         AlterView.setSpacing(10);
         
@@ -480,6 +482,7 @@ public class ZAPROS extends Application {
                                 ", "+1+"-"+a.id+") => "+a.rang);
             }
         }
+        
         
         ObservableList<String> langs = FXCollections.observableArrayList(stringScales);
         ListView<String> langsListView = new ListView<String>(langs);
